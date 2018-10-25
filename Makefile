@@ -7,19 +7,25 @@
 # Name of the app
 APP_NAME := 'MiningHQ\ Miner\ Manager'
 
-default: build ## Build the binary
+build: ## Build the binary
+	go build -o ./bin/${APP_NAME} ./src/*.go
 
-build: ## Run the bundler to build the GUI
-	cd src/; astilectron-bundler -v
+run: build ## Build and run the binary
+	./bin/${APP_NAME} --no-gui
 
-run: build ## Build and run the GUI for Linux
-	./bin/linux-amd64/'${APP_NAME}'
-
-run_debug: build ## Build and run the GUI for Linux in debug mode
-	./bin/linux-amd64/'${APP_NAME}' -d
-
-run_only_debug: ## Run the GUI for Linux without building
-	./bin/linux-amd64/'${APP_NAME}' -d
+# default: build ## Build the binary
+#
+# build: ## Run the bundler to build the GUI
+# 	cd src/; astilectron-bundler -v
+#
+# run: build ## Build and run the GUI for Linux
+# 	./bin/linux-amd64/'${APP_NAME}'
+#
+# run_debug: build ## Build and run the GUI for Linux in debug mode
+# 	./bin/linux-amd64/'${APP_NAME}' -d
+#
+# run_only_debug: ## Run the GUI for Linux without building
+# 	./bin/linux-amd64/'${APP_NAME}' -d
 
 webdev: ## Run the web interface as a stanalone site (for development)
 	./scripts/run_browsersync.sh
