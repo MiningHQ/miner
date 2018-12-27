@@ -5,13 +5,26 @@ The MiningHQ Miner manager GUI
 ## About
 
 The MiningHQ Miner Manager is a graphical application for interacting
-with the miners installed on your local machine.
+with the miner installed on your local machine.
 
-This application interacts with the installed
+It interacts with the installed
 [Miner Controller](https://github.com/donovansolms/miner-controller) for
 showing various statistics and information of your local setup.
 
-On first launch, the manager acts as an installed for your miners.
+On first launch, the manager acts as an installer for your rigs.
+
+## Building
+
+The following should work for Linux, Windows and MacOS.
+
+1. You must have a working [Go](https://golang.org/) installation
+2. Install the required libraries
+
+  ```
+  go get -u github.com/asticode/go-astilectron
+  go get -u github.com/asticode/go-astilectron-bundler/...
+  go get -u github.com/asticode/go-astilectron-bootstrap
+  ```
 
 ## License
 

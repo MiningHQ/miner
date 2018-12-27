@@ -28,15 +28,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/donovansolms/mininghq-miner-controller/src/caps"
 	"github.com/donovansolms/mininghq-miner-controller/src/mhq"
+	"github.com/donovansolms/mininghq-spec/spec/caps"
 	"github.com/fatih/color"
 	"github.com/otiai10/copy"
 	input "github.com/tcnksm/go-input"
 )
 
-// Installer install the Miner Manager
-type Installer struct {
+// CLIInstaller install the Miner Manager from the terminal
+type CLIInstaller struct {
 	// homeDir is the user's home directory
 	homeDir string
 	// os is the system operating system
@@ -46,7 +46,7 @@ type Installer struct {
 }
 
 // New creates a new installer instance
-func New(homeDir string, os string, mhqEndpoint string) (*Installer, error) {
+func New(homeDir string, os string, mhqEndpoint string) (*CLIInstaller, error) {
 	if strings.TrimSpace(homeDir) == "" {
 		return nil, errors.New("A home directory must be set")
 	}
@@ -57,7 +57,7 @@ func New(homeDir string, os string, mhqEndpoint string) (*Installer, error) {
 		return nil, fmt.Errorf("OS may only be %s, %s or %s", Windows, MacOS, Linux)
 	}
 
-	installer := Installer{
+	installer := CLIInstaller{
 		homeDir:     homeDir,
 		os:          os,
 		mhqEndpoint: mhqEndpoint,
@@ -67,7 +67,7 @@ func New(homeDir string, os string, mhqEndpoint string) (*Installer, error) {
 
 // InstallSync installs the miner manager using a synchronous process,
 // no feedback is given to the caller via channels
-func (installer *Installer) InstallSync() error {
+func (installer *CLIInstaller) InstallSync() error {
 
 	// Note: This will not be the prettiest code you'll ever see :)
 	// If anyone has some good advice in controlling the output for this process,
@@ -372,7 +372,7 @@ via our help channels listed at https://www.mininghq.io/help
 //
 // It returns the path where miners will be installed, users need to exclude
 // this path from antivirus scanning.
-func (installer *Installer) CreateInstallDirectories(
+func (installer *CLIInstaller) CreateInstallDirectories(
 	installDirectory string) (string, error) {
 
 	paths := []string{
@@ -398,7 +398,7 @@ func (installer *Installer) CreateInstallDirectories(
 
 // GetOSAVGuides returns a list of links and descriptions for antivirus
 // directory exclude guides
-func (installer *Installer) GetOSAVGuides() string {
+func (installer *CLIInstaller) GetOSAVGuides() string {
 	if installer.os == Windows {
 		return fmt.Sprintf(`
 

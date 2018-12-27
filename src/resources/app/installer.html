@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="static/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="static/css/app.css" />
+    <link rel="stylesheet" href="static/css/main.css" />
+
+    <link rel="stylesheet" href="static/lib/astiloader/astiloader.css">
+    <link rel="stylesheet" href="static/lib/astimodaler/astimodaler.css">
+    <link rel="stylesheet" href="static/lib/astinotifier/astinotifier.css">
+    <link rel="stylesheet" href="static/lib/font-awesome-4.7.0/css/font-awesome.min.css">
+
+</head>
+<body>
+  <div class="h-v m-0 mhq-wizard d-flex">
+    <div class="m-0 p-0 row box bg-white box-radius-1 box-shadow-1 col-12">
+      <div class="col-4 overview">
+        <div class="text-center">
+          <img src="static/i/mininghq_logo_vertical.png">
+        </div>
+        <div class="mt-2 box-header dark lt text-center text-uppercase">
+          <h3>Installer</h3>
+        </div>
+        <div class="text-left p-4 pl-5">
+          <div id="step_1_index" class="text-white">
+            <i class="fa fa-fw fa-chevron-right"></i> Welcome
+          </div>
+          <div id="step_2_index">
+            <i class="fa fa-fw fa-chevron-right"></i> Name this rig
+          </div>
+          <div id="step_3_index">
+            <i class="fa fa-fw fa-chevron-right"></i> Install location
+          </div>
+          <div id="step_4_index">
+            <i class="fa fa-fw fa-chevron-right"></i> Confirm
+          </div>
+          <div id="step_5_index">
+            <i class="fa fa-fw fa-chevron-right"></i> What's next?
+          </div>
+        </div>
+      </div>
+      <div id="step_1" class="col-8">
+        <div class="box-header text-dark light lt">
+          <h3>Welcome to the Mining HQ miner installer</h3>
+          <small>The software to manage your mining</small>
+        </div>
+        <div class="box-body">
+          <p class="mb-2">
+            <span class="text-white danger">TODO: Write intro</span>
+          </p>
+          <p class="mb-2">
+            Until now, cryptocurrency mining has been something only the technical minded among us
+            attempted, MiningHQ is here to make it accessible to everyone because we believe
+            that more people should hold some cryptocurrencies.
+          </p>
+          <p class="mb-2">
+            Let's set up your first rig.
+          </p>
+
+          <div class="ml-1 pl-2 b-l b-l-warn b-l-5x text-warn">
+            We refer to any computer used to mine cryptocurrencies as a <b>rig</b>.
+          </div>
+
+        </div>
+        <div class="modal-footer mt-0">
+          <button class="btn info wizard-continue" data-step="1" data-role="next">
+            Continue <i class="fa fa-fw fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      <div id="step_2" class="col-8 hide">
+        <div class="box-header text-dark light lt">
+          <h3>Name this rig</h3>
+          <small>Short and discriptive</small>
+        </div>
+        <div class="box-body">
+          <div class="form-group">
+            <label for="rig_name">Rig name</label>
+            <input type="text" class="form-control" id="rig_name" aria-describedby="rig_name_help" placeholder="Geforce Gaming PC">
+            <small id="rig_name_help" class="form-text text-muted">You'll use your rig name to easily identify this rig on MiningHQ</small>
+          </div>
+        </div>
+        <div class="modal-footer mt-0">
+          <button class="btn dark-white wizard-continue" data-step="2" data-role="back"><i class="fa fa-fw fa-chevron-left"></i> Back</button>
+          <button class="btn info wizard-continue" data-step="2" data-role="next">
+            Continue <i class="fa fa-fw fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      <div id="step_3" class="col-8 hide">
+        <div class="box-header text-dark light lt">
+          <h3>Install location</h3>
+          <small>Where you wish to install to</small>
+        </div>
+        <div class="box-body">
+          <div class="form-group">
+            <label for="install_path">Install location, by default, we'll install to <span class="text-monospace">'c:\Program Files\MiningHQ'</span></label>
+            <div class="">
+              <div class="form-file">
+                <input type="file" webkitdirectory>
+                <button class="btn white">Change location ...</button>
+              </div>
+            </div>
+            <small id="install_path_help" class="form-text text-muted">This is where the MiningHQ software will be installed on your rig</small>
+          </div>
+        </div>
+        <div class="modal-footer mt-0">
+          <button class="btn dark-white wizard-continue" data-step="3" data-role="back"><i class="fa fa-fw fa-chevron-left"></i> Back</button>
+          <button class="btn info wizard-continue" data-step="3" data-role="next">
+            Continue <i class="fa fa-fw fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      <div id="step_4" class="col-8 hide">
+        <div class="box-header text-dark light lt">
+          <h3>Confirm</h3>
+          <small>Check that you are happy</small>
+        </div>
+        <div class="box-body">
+
+        </div>
+        <div class="modal-footer mt-0">
+          <button class="btn dark-white wizard-continue" data-step="4" data-role="back"><i class="fa fa-fw fa-chevron-left"></i> Back</button>
+          <button class="btn info wizard-continue" data-step="4" data-role="next">
+            Install now <i class="fa fa-fw fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="static/lib/astiloader/astiloader.js"></script>
+  <script>window.$ = window.jQuery = require('./static/lib/jquery/jquery.min.js');</script>
+  <script type="text/javascript">
+    var totalSteps = 5;
+
+    $(document).ready(function(){
+      $('.wizard-continue').bind('click', function(){
+        var buttonRole = $(this).data('role');
+        var buttonStep = $(this).data('step');
+        var nextStep = buttonStep + 1;
+        var previousStep = buttonStep - 1;
+
+        if (buttonRole == 'next')
+        {
+          if (nextStep < totalSteps)
+          {
+            $('#step_' + buttonStep).toggleClass('hide');
+            $('#step_' + nextStep).toggleClass('hide');
+            $('#step_' + buttonStep + '_index').toggleClass('text-white');
+            $('#step_' + nextStep + '_index').toggleClass('text-white');
+          }
+        }
+        else
+        {
+          if (previousStep > 0)
+          {
+            $('#step_' + buttonStep).toggleClass('hide');
+            $('#step_' + previousStep).toggleClass('hide');
+            $('#step_' + buttonStep + '_index').toggleClass('text-white');
+            $('#step_' + previousStep + '_index').toggleClass('text-white');
+          }
+        }
+      });
+
+
+    });
+
+  </script>
+</body>
+</html>

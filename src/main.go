@@ -53,7 +53,13 @@ import (
 	"github.com/donovansolms/mininghq-miner-manager/src/cmd"
 )
 
+// AppName is injected by the Astilectron bundler
+var AppName string
+
 func main() {
+	cmd.AppName = AppName
+	cmd.Asset = Asset
+	cmd.RestoreAssets = RestoreAssets
 	cmd.Execute()
 }
 
