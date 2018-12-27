@@ -13,6 +13,9 @@ build: ## Build the binary
 run: build ## Build and run the binary in CLI mode
 	./bin/linux-amd64/'${APP_NAME}' --no-gui
 
+run_cli:  ## Build and run the binary in CLI mode
+	go run -race ./src/*.go --no-gui
+
 run_gui: build ## Build and run the binary in GUI mode
 	./bin/linux-amd64/'${APP_NAME}'
 

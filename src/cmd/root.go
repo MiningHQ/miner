@@ -32,6 +32,10 @@ var apiEndpoint string
 func Execute() {
 	if isInstalled() {
 		fmt.Println("Installed already, run manager")
+		if err := manageCmd.Execute(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	} else {
 		if err := installCmd.Execute(); err != nil {
 			fmt.Println(err)
@@ -48,7 +52,7 @@ func Execute() {
 func isInstalled() bool {
 	// TODO: Check homedir, if the user has certain things installed we can
 	// assume miner manager has been installed already
-	return false
+	return true
 }
 
 func init() {

@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="static/lib/astinotifier/astinotifier.css">
     <link rel="stylesheet" href="static/lib/font-awesome-4.7.0/css/font-awesome.min.css">
 
+    <script src="static/lib/astiloader/astiloader.js"></script>
+    <script>window.$ = window.jQuery = require('./static/lib/jquery/jquery.min.js');</script>
 </head>
 <body>
   <div class="h-v m-0 mhq-wizard d-flex">
@@ -97,14 +99,16 @@
         </div>
         <div class="box-body">
           <div class="form-group">
-            <label for="install_path">Install location, by default, we'll install to <span class="text-monospace">'c:\Program Files\MiningHQ'</span></label>
-            <div class="">
-              <div class="form-file">
-                <input type="file" webkitdirectory>
-                <button class="btn white">Change location ...</button>
+            <label for="install_path">Install location</label>
+            <div class="row">
+              <div class="form-group col-6">
+                <input id="install_path" type="text" class="form-control" aria-describedby="install_path_help" value="c:\Program Files\MiningHQ"/>
+                <small id="install_path_help" class="form-text text-muted">This is where the MiningHQ software will be installed on your rig</small>
+              </div>
+              <div class="form-group col-6">
+                <button id="install_path_selector" class="btn white">Change location ...</button>
               </div>
             </div>
-            <small id="install_path_help" class="form-text text-muted">This is where the MiningHQ software will be installed on your rig</small>
           </div>
         </div>
         <div class="modal-footer mt-0">
@@ -131,8 +135,6 @@
       </div>
     </div>
   </div>
-  <script src="static/lib/astiloader/astiloader.js"></script>
-  <script>window.$ = window.jQuery = require('./static/lib/jquery/jquery.min.js');</script>
   <script type="text/javascript">
     var totalSteps = 5;
 
@@ -165,6 +167,11 @@
         }
       });
 
+      $('#install_path_selector').bind('click', function(){
+        astilectron.showOpenDialog({properties: ['openDirectory',], title: "My Title"}, function(path) {
+            $('#install_path').val(path);
+        });
+      });
 
     });
 

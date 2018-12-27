@@ -69,7 +69,7 @@ stats on the local machine, however, the MiningHQ Dashboard
 			AppName,
 			Asset,
 			RestoreAssets,
-			false, // TODO: Debug should come from somewhere else
+			true, // TODO: Debug should come from somewhere else
 		)
 		if err != nil {
 			// Setting the output to stdout so the user can see the error
