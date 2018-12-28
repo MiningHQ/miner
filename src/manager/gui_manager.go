@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
+	"time"
 
 	astilectron "github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
+	"github.com/buildkite/terminal"
 	"github.com/donovansolms/mininghq-rpcproto/rpcproto"
 	"github.com/sirupsen/logrus"
 )
@@ -171,13 +174,73 @@ func (gui *GUIManager) Run() error {
 }
 
 // updateLoop is executed every X seconds, it fetches the latest state, stats
-// and logs from the miner controller and sends it to the front end.
+// and logs from the miner controller and sends it to the Electron.
 func (gui *GUIManager) updateLoop() {
 
-	//for {
+	var managerUpdate rpcproto.ManagerUpdate
 
-	//  time.Sleep(time.Second)
-	//}
+	for {
+		gui.logger.Debug("Fetching update information")
+
+		managerUpdate = rpcproto.ManagerUpdate{
+			Stats: &rpcproto.MinerStats{},
+		}
+
+		// Get the miner's stats
+		statsResponse, err := gui.managerClient.GetStats(context.Background(), &rpcproto.StatsRequest{})
+		if err != nil {
+			gui.logger.WithField(
+				"op", "GetStats",
+			).Errorf("Unable to get stats from controller: %s", err)
+		} else if statsResponse != nil {
+			// Combine all the miner stats into one
+			for _, stats := range statsResponse.Stats {
+				managerUpdate.Stats.Hashrate += stats.Hashrate
+				managerUpdate.Stats.TotalShares += stats.TotalShares
+				managerUpdate.Stats.AcceptedShares += stats.AcceptedShares
+				managerUpdate.Stats.RejectedShares += stats.RejectedShares
+			}
+		}
+
+		// Get the miner's state
+		stateResponse, err := gui.managerClient.GetState(context.Background(), &rpcproto.StateRequest{})
+		if err != nil {
+			gui.logger.WithField(
+				"op", "GetState",
+			).Errorf("Unable to get state from controller: %s", err)
+		} else if stateResponse != nil {
+			managerUpdate.State = stateResponse.State
+		}
+
+		// Get the miner's logs
+		logsResponse, err := gui.managerClient.GetLogs(context.Background(), &rpcproto.LogsRequest{
+			MaxLines: 500,
+		})
+		if err != nil {
+			gui.logger.WithField(
+				"op", "GetLogs",
+			).Errorf("Unable to get logs from controller: %s", err)
+		} else if logsResponse != nil {
+			var logs []string
+			// We need to format the logs to HTML for display
+			for _, log := range logsResponse.MinerLogs {
+				for _, line := range log.Logs {
+					htmlLine := terminal.Render([]byte(line))
+					logs = append(logs, string(htmlLine))
+				}
+			}
+			managerUpdate.HTMLLogs = strings.Join(logs, "<br/>")
+		}
+
+		err = gui.sendElectronCommand("update", managerUpdate)
+		if err != nil {
+			gui.logger.WithField(
+				"method", "update",
+			).Errorf("Unable to send update to Electron: %s", err)
+		}
+
+		time.Sleep(time.Second * 5)
+	}
 }
 
 // handleElectronCommands handles the messages sent by the Electron front-end
@@ -216,8 +279,11 @@ func (gui *GUIManager) handleElectronCommands(
 		if err != nil {
 			gui.logger.WithField(
 				"method", "setup",
-			).Errorf("Unable to send setup to front end: %s", err)
+			).Errorf("Unable to send setup to Electron: %s", err)
 		}
+
+		// TODO: Do this loop better
+		go gui.updateLoop()
 
 	case "Cancel":
 

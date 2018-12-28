@@ -40,7 +40,30 @@ let manager = {
           break;
 
         case "update":
-          console.log("received update packet")
+          if (parsed.Stats.Hashrate != undefined)
+          {
+            $('#current_hashrate').html(parsed.Stats.Hashrate + " H/s");
+          } else $('#current_hashrate').html("0 H/s");
+          $('#shares_total').html(parsed.Stats.TotalShares);
+          $('#shares_accepted').html(parsed.Stats.AcceptedShares);
+          $('#shares_rejected').html(parsed.Stats.RejectedShares);
+          $('#rig_logs').html(parsed.HTMLLogs);
+
+          if (parsed.State == 2) // Mining = 2;
+          {
+            $('#state_info').addClass('text-success');
+            $('#state_info').removeClass('text-danger');
+            $('#state_info').html('Mining');
+            $('#state_info').show();
+          }
+          else if (parsed.State == 3) // StopMining = 3;
+          {
+            $('#state_info').removeClass('text-success');
+            $('#state_info').addClass('text-danger');
+            $('#state_info').html('Not mining');
+            $('#state_info').show();
+          }
+
           break;
 
         default:

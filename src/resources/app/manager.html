@@ -33,19 +33,19 @@
             <h1 class="text-muted" id="current_hashrate">0 H/s</h1>
             <div class="row align-items-stretch mt-4">
               <div class="col-sm-10 col-md-4">
-                <h6 class="_600 m-0 text-muted">
+                <h6 id="shares_total" class="_600 m-0 text-muted">
                   0
                 </h6>
                 <div class="text-muted mb-3">Total Shares</div>
               </div>
               <div class="col-sm-10 col-md-4">
-                <h6 class="_600 m-0 text-success">
+                <h6 id="shares_accepted" class="_600 m-0 text-success">
                   0
                 </h6>
                 <div class="text-muted mb-3">Accepted Shares</div>
               </div>
               <div class="col-sm-10 col-md-4">
-                <h6 class="_600 m-0 text-danger">
+                <h6 id="shares_rejected" class="_600 m-0 text-danger">
                   0
                 </h6>
                 <div class="text-muted mb-3">Rejected Shares</div>
@@ -57,24 +57,18 @@
           </div>
         </div>
         <div class="col-8">
-          <div class="box-header text-dark light lt">
-            <small>Rig</small>
-            <h3 id="rig_name"></h3>
-          </div>
-          <div class="box-body row d-flex justify-content-around align-items-center">
-            <div class="text-warning">
-              <i class="fa fa-fw fa-bolt"></i> disconnected
+          <div class="box-header text-dark light lt row">
+            <div class="col-10">
+              <small>Rig</small>
+              <h3 id="rig_name"></h3>
             </div>
-            <div class="text-warning">
-              <i class="fa fa-fw fa-gavel"></i> not mining
-            </div>
-            <div class="">
-              <button class="btn danger"><i class="fa fa-fw fa-close"></i> Stop mining</button>
+            <div class="col-2 clearfix">
+              <span id="state_info" class="text-danger float-right _600 text-uppercase">Not mining</span>
             </div>
           </div>
           <div class="box-footer">
             <h6>Logs</h6>
-            <pre id="rig_logs" class="term-container p-3 m-0 bg-dark" style="height: 250px;">
+            <pre id="rig_logs" class="term-container p-3 m-0 bg-dark" style="height: 345px;">
 Logs not available yet or rig is not mining
             </pre>
           </div>
