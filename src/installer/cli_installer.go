@@ -78,7 +78,7 @@ func (installer *CLIInstaller) InstallSync() error {
    /  |/  (_)__  (_)__  ___ _/ // / __ \
   / /|_/ / / _ \/ / _ \/ _ '/ _  / /_/ /
  /_/  /_/_/_//_/_/_//_/\_, /_//_/\___\_\
-                     /___/ Miner Manager Installer
+                     /___/ Miner Installer
                            www.mininghq.io
 
 This installer will install the MiningHQ Miner Manager.
@@ -149,7 +149,7 @@ required services, please verify the installation details below
 		color.HiRed("* The installation has been cancelled *")
 		color.HiRed("***************************************")
 		color.HiYellow(`
-Something wrong? If so, please let use know by getting in contact
+Something wrong? If so, please let us know by getting in contact
 via our help channels listed at https://www.mininghq.io/help
 `)
 		os.Exit(0)
@@ -166,135 +166,13 @@ ensure you have sufficient permissions (like Administrator or root) access
 to create directories in '%s'.
 `,
 			installDir)
-		fmt.Printf(color.HiRedString("The error was '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
 		os.Exit(1)
 	}
 	// Installation directory created
-	color.HiGreen("OK")
-
-	fmt.Print("Gather rig capabilities\t\t\t")
-	systemInfo, err := caps.GetSystemInfo()
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Printf(`
-We were unable to determine the capabilities of this rig. Please ensure you
-have sufficient permissions to check installed hardware on this system.
-
-If you are sure you have the permissions, please contact support to resolve
-the issue. Support can be contacted via our help channels listed at
-https://www.mininghq.io/help
-`)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
-	}
-	// Installation directory created
-	color.HiGreen("OK")
-
-	// Register this rig with MiningHQ
-	miningKeyPath := "mining_key"
-	fmt.Print("Register rig with MiningHQ\t\t")
-	apiCreateError := fmt.Sprintf(`
-We were unable to connect to the MiningHQ API to register your rig.
-Please check that the file '%s' is present in the same directory you are
-running the installer from. If not, please download the Miner Manager again
-from https://www.mininghq.io/rig/add
-`,
-		miningKeyPath)
-	miningKeyBytes, err := ioutil.ReadFile(miningKeyPath)
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Println(apiCreateError)
-		fmt.Printf(color.HiRedString("The error was '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
-	}
-	miningKey := strings.TrimSpace(string(miningKeyBytes))
-	apiClient, err := mhq.NewClient(miningKey, installer.mhqEndpoint)
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Println(apiCreateError)
-		fmt.Printf(color.HiRedString("The error was '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
-	}
-
-	registerRequest := mhq.RegisterRigRequest{
-		Name: rigName,
-		Caps: systemInfo,
-	}
-	rigID, err := apiClient.RegisterRig(registerRequest)
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Printf(`
-We were unable to to register your rig with MiningHQ. Please ensure that
-you are connected to the internet and that the file '%s' contains the same
-mining key that you can find on your Miner dashboard available at
-https://www.mininghq.io/miners/overview
-
-If you are sure everything is in order, please contact support to resolve
-the issue. Support can be contacted via our help channels listed at
-https://www.mininghq.io/help
-`,
-			miningKeyPath)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
-	}
-	// Rig registered
-	color.HiGreen("OK")
-
-	// To create the config files we need to do two things
-	// 1. Copy the mining_key to the installation directory
-	// 2. Create a rig_id file in the installation directory
-	fmt.Print("Create config files\t\t\t")
-	err = copy.Copy(
-		miningKeyPath,
-		filepath.Join(installDir, filepath.Base(miningKeyPath)))
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Printf(`
-We were unable to copy your mining key to your installation.
-`)
-		fmt.Printf(color.HiRedString(
-			"The error was '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
-	}
-
-	err = ioutil.WriteFile(
-		filepath.Join(installDir, "rig_id"),
-		[]byte(rigID),
-		0644)
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Printf(`
-We were unable to create the new rig files for your installation.
-`)
-		fmt.Printf(color.HiRedString(
-			"The error was '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
-	}
-
-	// Config files created
 	color.HiGreen("OK")
 
 	blinking := color.New(color.BlinkSlow, color.FgHiYellow)
@@ -352,16 +230,137 @@ You can follow the following instructions on how to exclude the directory: %s
 		color.HiRed("* You must exclude the miner directory *")
 		color.HiRed("****************************************")
 		color.HiYellow(`
-Something wrong? If so, please let use know by getting in contact
+Something wrong? If so, please let us know by getting in contact
 via our help channels listed at https://www.mininghq.io/help
 `)
 		os.Exit(0)
 	}
 
+	fmt.Print("Gather rig capabilities\t\t\t")
+	systemInfo, err := caps.GetSystemInfo()
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to determine the capabilities of this rig. Please ensure you
+have sufficient permissions to check installed hardware on this system.
+
+If you are sure you have the permissions, please contact support to resolve
+the issue. Support can be contacted via our help channels listed at
+https://www.mininghq.io/help
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+	// Installation directory created
+	color.HiGreen("OK")
+
+	// Register this rig with MiningHQ
+	miningKeyPath := "mining_key"
+	fmt.Print("Register rig with MiningHQ\t\t")
+	apiCreateError := fmt.Sprintf(`
+We were unable to connect to the MiningHQ API to register your rig.
+Please check that the file '%s' is present in the same directory you are
+running the installer from. If not, please download the Miner Manager again
+from https://www.mininghq.io/rig/add
+`,
+		miningKeyPath)
+	miningKeyBytes, err := ioutil.ReadFile(miningKeyPath)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Println(apiCreateError)
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+	miningKey := strings.TrimSpace(string(miningKeyBytes))
+	apiClient, err := mhq.NewClient(miningKey, installer.mhqEndpoint)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Println(apiCreateError)
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+
+	registerRequest := mhq.RegisterRigRequest{
+		Name: rigName,
+		Caps: systemInfo,
+	}
+	rigID, err := apiClient.RegisterRig(registerRequest)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to register your rig with MiningHQ. Please ensure that
+you are connected to the internet and that the file '%s' contains the same
+mining key that you can find under 'Mining' in your settings available at
+https://www.mininghq.io/user/settings
+
+If you are sure everything is in order, please contact support to resolve
+the issue. Support can be contacted via our help channels listed at
+https://www.mininghq.io/help
+`,
+			miningKeyPath)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+	// Rig registered
+	color.HiGreen("OK")
+
+	// To create the config files we need to do two things
+	// 1. Copy the mining_key to the installation directory
+	// 2. Create a rig_id file in the installation directory
+	fmt.Print("Create config files\t\t\t")
+	err = copy.Copy(
+		miningKeyPath,
+		filepath.Join(installDir, filepath.Base(miningKeyPath)))
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to copy your mining key to your installation.
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+
+	err = ioutil.WriteFile(
+		filepath.Join(installDir, "rig_id"),
+		[]byte(rigID),
+		0644)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to create the new rig files for your installation.
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+
+	// Config files created
+	color.HiGreen("OK")
+
 	// TODO: Download MiningHQ Miner service
 	// TODO: Download the latest version of MiningHQ Miner Controller using
 	// unattended
-	// TODO: Determine the recommended miners
 
 	fmt.Println()
 	fmt.Println()
@@ -399,21 +398,5 @@ func (installer *CLIInstaller) CreateInstallDirectories(
 // GetOSAVGuides returns a list of links and descriptions for antivirus
 // directory exclude guides
 func (installer *CLIInstaller) GetOSAVGuides() string {
-	if installer.os == Windows {
-		return fmt.Sprintf(`
-
-* Windows 10: https://www.mininghq.io/help/antivirus/exclude?p=win10
-* Kaspersky:  https://www.mininghq.io/help/antivirus/exclude?p=kaspersky`)
-
-	}
-	if installer.os == Linux {
-		return fmt.Sprintf(`Linux:  https://www.mininghq.io/help/antivirus/exclude
-`)
-	}
-	if installer.os == MacOS {
-		return fmt.Sprintf(`MacOS:  https://www.mininghq.io/help/antivirus/exclude
-	`)
-	}
-
-	return fmt.Sprintf("No guides found for '%s'", installer.os)
+	return fmt.Sprintf(`https://www.mininghq.io/help/antivirus`)
 }

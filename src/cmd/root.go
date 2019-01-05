@@ -52,7 +52,7 @@ func Execute() {
 func isInstalled() bool {
 	// TODO: Check homedir, if the user has certain things installed we can
 	// assume miner manager has been installed already
-	return true
+	return false
 }
 
 func init() {
