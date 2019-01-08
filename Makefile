@@ -32,6 +32,12 @@ run_gui: build ## Build and run the binary in GUI mode
 #
 # run_only_debug: ## Run the GUI for Linux without building
 # 	./bin/linux-amd64/'${APP_NAME}' -d
+#
+embed_linux: ## Embed the MininHQ miner service into this binary for building
+	rm -Rf miner-service
+	mkdir miner-service
+	cp ${GOPATH}/src/github.com/donovansolms/mininghq-miner/bin/mininghq-miner miner-service/mininghq-miner
+	esc -o src/embedded/miner_service.go -pkg embedded miner-service
 
 fmt: ## Format the code using `go fmt`
 	go fmt ./...

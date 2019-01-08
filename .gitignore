@@ -15,3 +15,6 @@
 bin/
 logs/
 bind_*
+
+# Don't commit files with embedded binaries - they might be for the wrong platform
+src/embedded/*.go

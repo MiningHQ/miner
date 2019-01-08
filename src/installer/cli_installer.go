@@ -23,12 +23,15 @@ package installer
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/donovansolms/mininghq-miner-controller/src/mhq"
+	"github.com/donovansolms/mininghq-miner-manager/src/embedded"
 	"github.com/donovansolms/mininghq-spec/spec/caps"
 	"github.com/fatih/color"
 	"github.com/otiai10/copy"
@@ -265,7 +268,7 @@ https://www.mininghq.io/help
 We were unable to connect to the MiningHQ API to register your rig.
 Please check that the file '%s' is present in the same directory you are
 running the installer from. If not, please download the Miner Manager again
-from https://www.mininghq.io/rig/add
+from https://www.mininghq.io/rigs
 `,
 		miningKeyPath)
 	miningKeyBytes, err := ioutil.ReadFile(miningKeyPath)
@@ -324,7 +327,7 @@ https://www.mininghq.io/help
 	fmt.Print("Create config files\t\t\t")
 	err = copy.Copy(
 		miningKeyPath,
-		filepath.Join(installDir, filepath.Base(miningKeyPath)))
+		filepath.Join(installDir, "miner-controller", filepath.Base(miningKeyPath)))
 	if err != nil {
 		color.HiRed("FAIL")
 		fmt.Printf(`
@@ -339,7 +342,7 @@ We were unable to copy your mining key to your installation.
 	}
 
 	err = ioutil.WriteFile(
-		filepath.Join(installDir, "rig_id"),
+		filepath.Join(installDir, "miner-controller", "rig_id"),
 		[]byte(rigID),
 		0644)
 	if err != nil {
@@ -358,9 +361,66 @@ We were unable to create the new rig files for your installation.
 	// Config files created
 	color.HiGreen("OK")
 
-	// TODO: Download MiningHQ Miner service
-	// TODO: Download the latest version of MiningHQ Miner Controller using
-	// unattended
+	// The MiningHQ miner service is embedded into this installer
+	// It needs to be extracted into the installation directory
+	fmt.Print("Installing MiningHQ Miner\t\t")
+
+	embeddedFilename := "mininghq-miner"
+	if strings.ToLower(runtime.GOOS) == "windows" {
+		embeddedFilename = "mininghq-miner.exe"
+	}
+	embeddedFS := embedded.FS(false)
+	embeddedFile, err := embeddedFS.Open("/miner-service/" + embeddedFilename)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to extract the miner from the installer.
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+	defer embeddedFile.Close()
+
+	installFile, err := os.OpenFile(
+		filepath.Join(installDir, embeddedFilename),
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to create the miner in the correct location. Please check that
+you have sufficient space on your harddrive.
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+	defer installFile.Close()
+
+	_, err = io.Copy(installFile, embeddedFile)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+		We were unable to install the miner to the correct location.
+		`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+
+	// TODO: Install mininghq-miner as a service
+
+	// Config files created
+	color.HiGreen("OK")
 
 	fmt.Println()
 	fmt.Println()
