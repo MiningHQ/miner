@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-// installCmd represents running the GUI manager
+// manageCmd represents running the GUI manager
 var manageCmd = &cobra.Command{
 	Use:   "MiningHQ Miner Manager",
 	Short: "The MiningHQ Miner Manager GUI",
@@ -149,7 +149,6 @@ https://www.mininghq.io`,
 }
 
 func init() {
-	//installCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is $HOME/.mhq.yaml)")
 	manageCmd.Flags().BoolVar(&noGUI, "no-gui", false, "Run the manager without GUI")
-	//installCmd.Flags().StringVar(&apiEndpoint, "api-endpoint", "http://mininghq.local/api/v1", "The base API endpoint for MiningHQ")
+	manageCmd.Flags().BoolVar(&mustUninstall, "uninstall", false, "Completely remove MiningHQ services from this system")
 }

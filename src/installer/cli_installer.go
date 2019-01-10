@@ -34,6 +34,7 @@ import (
 	"github.com/donovansolms/mininghq-miner-manager/src/embedded"
 	"github.com/donovansolms/mininghq-spec/spec/caps"
 	"github.com/fatih/color"
+	"github.com/kardianos/service"
 	"github.com/otiai10/copy"
 	input "github.com/tcnksm/go-input"
 )
@@ -46,6 +47,10 @@ type CLIInstaller struct {
 	os string
 	// mhqEndpoint is the MiningHQ API endpoint to use
 	mhqEndpoint string
+
+	serviceName        string
+	serviceDisplayName string
+	serviceDescription string
 }
 
 // New creates a new installer instance
@@ -61,11 +66,218 @@ func New(homeDir string, os string, mhqEndpoint string) (*CLIInstaller, error) {
 	}
 
 	installer := CLIInstaller{
-		homeDir:     homeDir,
-		os:          os,
-		mhqEndpoint: mhqEndpoint,
+		homeDir:            homeDir,
+		os:                 os,
+		mhqEndpoint:        mhqEndpoint,
+		serviceName:        "GoServiceExampleLogging",
+		serviceDisplayName: "Go Service Example for Logging",
+		serviceDescription: "This is an example Go service that outputs log messages.",
 	}
 	return &installer, nil
+}
+
+// UninstallSync uninstalls the miner manager and services using
+// a synchronous process
+func (installer *CLIInstaller) UninstallSync(
+	installedPath string,
+	installedPathFilepath string) error {
+
+	// Note: This will not be the prettiest code you'll ever see :)
+	// If anyone has some good advice in controlling the output for this process,
+	// feel free to let me know
+
+	fmt.Printf(`
+    __  ____      _           __ ______
+   /  |/  (_)__  (_)__  ___ _/ // / __ \
+  / /|_/ / / _ \/ / _ \/ _ '/ _  / /_/ /
+ /_/  /_/_/_//_/_/_//_/\_, /_//_/\___\_\
+                     /___/ Miner Uninstaller
+                           www.mininghq.io
+
+This will remove the MiningHQ Miner Manager and all related services.
+We detected the installation in '%s'
+
+`, installedPath)
+
+	ui := &input.UI{}
+	question := "\nAre you sure you wish to remove the MiningHQ Miner and all MiningHQ services? [Y/yes/N/no]"
+	response, _ := ui.Ask(question, &input.Options{
+		Required: true,
+		Loop:     true,
+		ValidateFunc: func(s string) error {
+			validConfirmations := map[string]bool{
+				"y":   true,
+				"yes": true,
+				"n":   true,
+				"no":  true,
+			}
+			answer := strings.ToLower(s)
+			if _, ok := validConfirmations[answer]; !ok {
+				return fmt.Errorf(
+					"Answer '%s' is invalid. Must be 'y', 'yes', 'n' or 'no'", s)
+			}
+			return nil
+		},
+	})
+	allowContinue := strings.ToLower(response)
+	if allowContinue == "n" || allowContinue == "no" {
+		color.HiRed("********************************")
+		color.HiRed("* Uninstall has been cancelled *")
+		color.HiRed("********************************")
+		color.HiYellow(`
+Something wrong? If so, please let us know by getting in contact
+via our help channels listed at https://www.mininghq.io/help
+`)
+		os.Exit(0)
+	}
+
+	// Remove the service
+	fmt.Print("Deregister rig\t\t\t\t")
+	miningKeyPath := filepath.Join(installedPath, "miner-controller", "mining_key")
+	rigIDPath := filepath.Join(installedPath, "miner-controller", "rig_id")
+	apiCreateError := fmt.Sprintf(`
+We were unable to connect to the MiningHQ API to deregister your rig.
+Please check that the file '%s' and '%s' is present in your installation directory.
+`,
+		miningKeyPath,
+		rigIDPath)
+	miningKeyBytes, miningKeyErr := ioutil.ReadFile(miningKeyPath)
+	rigIDBytes, rigIDErr := ioutil.ReadFile(rigIDPath)
+	if miningKeyErr != nil || rigIDErr != nil {
+		color.HiRed("FAIL")
+		fmt.Println(apiCreateError)
+		if miningKeyErr != nil {
+			fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), miningKeyErr.Error())
+		} else if rigIDErr != nil {
+			fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), rigIDErr.Error())
+		}
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+	miningKey := strings.TrimSpace(string(miningKeyBytes))
+	rigID := strings.TrimSpace(string(rigIDBytes))
+	apiClient, err := mhq.NewClient(miningKey, installer.mhqEndpoint)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Println(apiCreateError)
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+
+	err = apiClient.DeregisterRig(mhq.DeregisterRigRequest{
+		RigID: rigID,
+	})
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to deregister your rig with MiningHQ. Please ensure that
+you are connected to the internet and that the file '%s' contains the same
+mining key that you can find under 'Mining' in your settings available at
+https://www.mininghq.io/user/settings
+
+If you are sure everything is in order, please contact support to resolve
+the issue. Support can be contacted via our help channels listed at
+https://www.mininghq.io/help
+`,
+			miningKeyPath)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+
+		// If we can't deregister the rig, continue with the rest of the removal
+		// anyways
+	} else {
+		// Rig removed
+		color.HiGreen("OK")
+	}
+
+	// Remove the service
+	fmt.Print("Removing the MiningHQ Miner service\t")
+
+	serviceFilename := "mininghq-miner"
+	if strings.ToLower(runtime.GOOS) == "windows" {
+		serviceFilename = "mininghq-miner.exe"
+	}
+	// Create mininghq-miner as a service
+	serviceConfig := &service.Config{
+		Name:             installer.serviceName,
+		DisplayName:      installer.serviceDisplayName,
+		Description:      installer.serviceDescription,
+		WorkingDirectory: installedPath,
+		Executable:       filepath.Join(installedPath, serviceFilename),
+	}
+	svc, err := service.New(nil, serviceConfig)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to create the removing miner service.
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+	err = svc.Uninstall()
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to uninstall the miner service (it might already be uninstalled).
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+
+		// If we can't remove the service, continue with the rest of the removal
+		// anyways
+	} else {
+		// Service uninstalled
+		color.HiGreen("OK")
+	}
+
+	// Remove files
+	fmt.Print("Remove the files\t\t\t")
+	err = os.RemoveAll(installedPath)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to remove the MiningHQ files from '%s'.
+`, installedPath)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(0)
+	}
+	err = os.Remove(installedPathFilepath)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to remove the MiningHQ file from '%s'.
+`, installedPathFilepath)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(0)
+	}
+	// Files removed
+	color.HiGreen("OK")
+	fmt.Println()
+
+	return nil
 }
 
 // InstallSync installs the miner manager using a synchronous process,
@@ -417,10 +629,132 @@ you have sufficient space on your harddrive.
 		os.Exit(1)
 	}
 
-	// TODO: Install mininghq-miner as a service
+	// Install mininghq-miner as a service
+	serviceConfig := &service.Config{
+		Name:             installer.serviceName,
+		DisplayName:      installer.serviceDisplayName,
+		Description:      installer.serviceDescription,
+		WorkingDirectory: installDir,
+		Executable:       filepath.Join(installDir, embeddedFilename),
+	}
+	svc, err := service.New(nil, serviceConfig)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to create the miner service.
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+	err = svc.Install()
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to install the miner service.
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
 
-	// Config files created
+	installedCheckfilePath := filepath.Join(installer.homeDir, ".mhqpath")
+	installedCheckfile, err := os.OpenFile(
+		installedCheckfilePath,
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		0655)
+	if err != nil {
+		fmt.Printf(`
+We were unable to create the installer check file in ~/.mhqpath. This
+will cause MiningHQ services to be unable to detect the installation.
+
+Please ensure you have the correct permissions to write to your home directory.
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+	}
+	defer installedCheckfile.Close()
+
+	_, err = installedCheckfile.WriteString(installDir)
+	if err != nil {
+		fmt.Printf(`
+We were unable to write to the installer check file in ~/.mhqpath. This
+will cause MiningHQ services to be unable to detect the installation.
+
+Please ensure you have the correct permissions to write to your home directory.
+`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		os.Exit(0)
+	}
+
+	// Copy the manager
+	managerBinaryPath, err := os.Executable()
+	if err != nil {
+		fmt.Printf(`
+We were unable to copy the miner manager to your installation path.
+
+Please ensure you have the correct permissions to write to your home directory.
+	`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		os.Exit(0)
+	}
+
+	managerName := filepath.Base(managerBinaryPath)
+	err = os.Rename(managerBinaryPath, filepath.Join(installDir, managerName))
+	if err != nil {
+		fmt.Printf(`
+We were unable to copy the miner manager to your installation path.
+
+Please ensure you have the correct permissions to write to your home directory.
+	`)
+		fmt.Printf(color.HiRedString(
+			"Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		os.Exit(0)
+	}
+
+	// Service installed
 	color.HiGreen("OK")
+
+	err = svc.Start() // TODO: Start doesn't start it, problems
+	if err != nil {
+		fmt.Printf(`
+Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually.
+`)
+	}
+
+	fmt.Printf(`
+
+
+*************************
+*  MiningHQ installed!  *
+*************************
+
+The MiningHQ Miner Manager and related services have been installed. You
+can now open you MiningHQ dashboard to manage this rig.
+
+https://www.mininghq.io/dashboard
+
+The MiningHQ Manager is also now available in the installed path at
+'%s'. You'll need to restart your rig for the automatic start to take effect.
+
+Please join the MiningHQ community on Discord, Twitter and elsewhere, you can find
+all our channels at https://www.mininghq.io/connect
+
+Let's mine!
+The MiningHQ Team
+	`, installDir)
 
 	fmt.Println()
 	fmt.Println()
