@@ -51,6 +51,9 @@ type CLIInstaller struct {
 	serviceName        string
 	serviceDisplayName string
 	serviceDescription string
+
+	// helper continas helper install functions
+	helper Helper
 }
 
 // New creates a new installer instance
@@ -72,6 +75,7 @@ func New(homeDir string, os string, mhqEndpoint string) (*CLIInstaller, error) {
 		serviceName:        "GoServiceExampleLogging",
 		serviceDisplayName: "Go Service Example for Logging",
 		serviceDescription: "This is an example Go service that outputs log messages.",
+		helper:             Helper{},
 	}
 	return &installer, nil
 }
@@ -372,7 +376,7 @@ via our help channels listed at https://www.mininghq.io/help
 
 	// Create the installation directory
 	fmt.Print("Creating installation directory\t\t")
-	avExcludeDirectory, err := installer.CreateInstallDirectories(installDir)
+	avExcludeDirectory, err := installer.helper.CreateInstallDirectories(installDir)
 	if err != nil {
 		color.HiRed("FAIL")
 		fmt.Printf(`
@@ -414,7 +418,7 @@ The directory to exclude is: '%s'
 You can follow the following instructions on how to exclude the directory: %s
 `,
 		color.HiYellowString(avExcludeDirectory),
-		installer.GetOSAVGuides(),
+		installer.helper.GetOSAVGuides(),
 	)
 
 	fmt.Println()
@@ -523,8 +527,7 @@ the issue. Support can be contacted via our help channels listed at
 https://www.mininghq.io/help
 `,
 			miningKeyPath)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -545,8 +548,7 @@ https://www.mininghq.io/help
 		fmt.Printf(`
 We were unable to copy your mining key to your installation.
 `)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -562,8 +564,7 @@ We were unable to copy your mining key to your installation.
 		fmt.Printf(`
 We were unable to create the new rig files for your installation.
 `)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -588,8 +589,7 @@ We were unable to create the new rig files for your installation.
 		fmt.Printf(`
 We were unable to extract the miner from the installer.
 `)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -606,8 +606,7 @@ We were unable to extract the miner from the installer.
 We were unable to create the miner in the correct location. Please check that
 you have sufficient space on your harddrive.
 `)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -619,10 +618,9 @@ you have sufficient space on your harddrive.
 	if err != nil {
 		color.HiRed("FAIL")
 		fmt.Printf(`
-		We were unable to install the miner to the correct location.
+We were unable to install the miner to the correct location.
 		`)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -643,8 +641,7 @@ you have sufficient space on your harddrive.
 		fmt.Printf(`
 We were unable to create the miner service.
 `)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -656,8 +653,7 @@ We were unable to create the miner service.
 		fmt.Printf(`
 We were unable to install the miner service.
 `)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -676,8 +672,7 @@ will cause MiningHQ services to be unable to detect the installation.
 
 Please ensure you have the correct permissions to write to your home directory.
 `)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 	}
 	defer installedCheckfile.Close()
@@ -690,8 +685,7 @@ will cause MiningHQ services to be unable to detect the installation.
 
 Please ensure you have the correct permissions to write to your home directory.
 `)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		os.Exit(0)
 	}
@@ -704,8 +698,7 @@ We were unable to copy the miner manager to your installation path.
 
 Please ensure you have the correct permissions to write to your home directory.
 	`)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		os.Exit(0)
 	}
@@ -718,8 +711,7 @@ We were unable to copy the miner manager to your installation path.
 
 Please ensure you have the correct permissions to write to your home directory.
 	`)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		os.Exit(0)
 	}
@@ -759,38 +751,4 @@ The MiningHQ Team
 	fmt.Println()
 	fmt.Println()
 	return nil
-}
-
-// CreateInstallDirectories creates the directories needed for installation
-//
-// It returns the path where miners will be installed, users need to exclude
-// this path from antivirus scanning.
-func (installer *CLIInstaller) CreateInstallDirectories(
-	installDirectory string) (string, error) {
-
-	paths := []string{
-		"miner-controller",
-		filepath.Join("miner-controller", "miners"),
-	}
-	avExcludePath := "miners"
-	for _, path := range paths {
-		path = filepath.Join(installDirectory, path)
-		err := os.MkdirAll(path, 0755)
-		if err != nil {
-			return avExcludePath, fmt.Errorf(
-				"Unable to create installation directory: '%s': %s",
-				path,
-				err)
-		}
-		if strings.Contains(path, "miners") {
-			avExcludePath = path
-		}
-	}
-	return avExcludePath, nil
-}
-
-// GetOSAVGuides returns a list of links and descriptions for antivirus
-// directory exclude guides
-func (installer *CLIInstaller) GetOSAVGuides() string {
-	return fmt.Sprintf(`https://www.mininghq.io/help/antivirus`)
 }

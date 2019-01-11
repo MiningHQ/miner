@@ -90,7 +90,7 @@ let manager = {
     // });
 
     $('#refresh').bind('click', function(){
-      astilectron.sendMessage({name: "refresh", payload: configData}, function(message){
+      astilectron.sendMessage({name: "refresh", payload: ""}, function(message){
 
       });
 

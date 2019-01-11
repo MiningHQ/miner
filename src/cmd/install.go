@@ -66,37 +66,40 @@ If you are sure you have the permissions, please contact support to resolve
 the issue. Support can be contacted via our help channels listed at
 https://www.mininghq.io/help
 	`, installFiller)
-			fmt.Printf(color.HiRedString(
-				"Include the following error in your report '%s'"), err.Error())
+			fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		}
-		if currentUser.Uid != "0" {
-			if strings.ToLower(runtime.GOOS) == "linux" ||
-				strings.ToLower(runtime.GOOS) == "darwin" {
-				fmt.Printf(`
-The installer requires sudo rights to %s the required MiningHQ services.
-Please run the installer with sudo.
 
-If you are sure you have the permissions, please contact support to resolve
-the issue. Support can be contacted via our help channels listed at
-https://www.mininghq.io/help
-
-`, installFiller)
-			} else {
-				fmt.Printf(`
-The installer requires Administrator rights to %s the required MiningHQ services.
-Please run the installer as the Administrator.
-
-To do that, right click on the installer and select 'Run as Administrator'.
-
-If you are sure you have the permissions, please contact support to resolve
-the issue. Support can be contacted via our help channels listed at
-https://www.mininghq.io/help
-
-`, installFiller)
-			}
-			os.Exit(0)
-
-		}
+		// TODO: Find a better way to sudo install the service
+		// 	TODO: PErhaps a standalone executable
+		_ = currentUser
+		// 		if currentUser.Uid != "0" {
+		// 			if strings.ToLower(runtime.GOOS) == "linux" ||
+		// 				strings.ToLower(runtime.GOOS) == "darwin" {
+		// 				fmt.Printf(`
+		// The installer requires sudo rights to %s the required MiningHQ services.
+		// Please run the installer with sudo.
+		//
+		// If you are sure you have the permissions, please contact support to resolve
+		// the issue. Support can be contacted via our help channels listed at
+		// https://www.mininghq.io/help
+		//
+		// `, installFiller)
+		// 			} else {
+		// 				fmt.Printf(`
+		// The installer requires Administrator rights to %s the required MiningHQ services.
+		// Please run the installer as the Administrator.
+		//
+		// To do that, right click on the installer and select 'Run as Administrator'.
+		//
+		// If you are sure you have the permissions, please contact support to resolve
+		// the issue. Support can be contacted via our help channels listed at
+		// https://www.mininghq.io/help
+		//
+		// `, installFiller)
+		// 			}
+		// 			os.Exit(0)
+		//
+		// 		}
 
 		mhqInstaller, err := installer.New(homeDir, runtime.GOOS, apiEndpoint)
 		if err != nil {
@@ -113,11 +116,7 @@ https://www.mininghq.io/help
 				fmt.Printf(`
 We were unable to find the installed location for the MiningHQ services. Please
 remove the files manually where you installed the services.
-
-Please ensure you have the correct permissions to write to your home directory.
 				`)
-				fmt.Printf(color.HiRedString(
-					"Include the following error in your report '%s'"), err.Error())
 				fmt.Println()
 				os.Exit(0)
 			}

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"runtime"
+	"strings"
 
 	astilectron "github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
@@ -20,6 +21,9 @@ type GUIInstaller struct {
 	astilectronOptions bootstrap.Options
 	// logger logs to stdout
 	logger *logrus.Entry
+
+	// helper functions
+	helper Helper
 }
 
 // NewGUI creates a new instance of the graphical installer
@@ -31,7 +35,9 @@ func NewGUI(
 
 	fmt.Println("AppNAme", appName)
 
-	gui := GUIInstaller{}
+	gui := GUIInstaller{
+		helper: Helper{},
+	}
 
 	// If no config is specified then this is the first run
 	startPage := "installer.html"
@@ -175,6 +181,54 @@ func (gui *GUIInstaller) handleElectronCommands(
 	// Every Electron command has a name together with a payload containing the
 	// actual message
 	switch command.Name {
+
+	case "install":
+
+		var payload map[string]string
+		err := json.Unmarshal(command.Payload, &payload)
+		if err != nil {
+			// TODO: Send error back to electron
+			return nil, err
+		}
+
+		if _, ok := payload["rigName"]; !ok {
+			return map[string]string{
+				"status":  "error",
+				"message": "A Rig Name must be set to install",
+			}, nil
+		}
+
+		if _, ok := payload["installPath"]; !ok {
+			return map[string]string{
+				"status":  "error",
+				"message": "The install path must be set to install",
+			}, nil
+		}
+
+		installDir := strings.TrimSpace(payload["installPath"])
+
+		// TODO: Send message to electron we're installing
+
+		avExcludeDirectory, err := gui.helper.CreateInstallDirectories(installDir)
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+We could not create one or more of the installation directories. Please
+ensure you have sufficient permissions (like Administrator or root) access
+to create directories in '%s'.
+
+Include the following error in your report: %s
+`, installDir, err.Error()),
+			}, nil
+		}
+
+		// TODO: Return the query for AV exclude
+
+		return map[string]string{
+			"status":  "ok",
+			"message": "Installing...",
+		}, nil
 
 	// Firstrun is received on the first run of the miner. We return the current
 	// logged in username

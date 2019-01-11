@@ -15,6 +15,8 @@
 
     <script src="static/lib/astiloader/astiloader.js"></script>
     <script>window.$ = window.jQuery = require('./static/lib/jquery/jquery.min.js');</script>
+    <script src="static/js/shared.js"></script>
+    <script src="static/js/installer.js"></script>
 </head>
 <body>
   <div class="h-v m-0 mhq-wizard d-flex">
@@ -79,6 +81,9 @@
           <small>Short and discriptive</small>
         </div>
         <div class="box-body">
+          <div id="rig_name_error" class="pb-2 text-danger d-none">
+            Please enter a rig name to continue
+          </div>
           <div class="form-group">
             <label for="rig_name">Rig name</label>
             <input type="text" class="form-control" id="rig_name" aria-describedby="rig_name_help" placeholder="Geforce Gaming PC">
@@ -98,11 +103,14 @@
           <small>Where you wish to install to</small>
         </div>
         <div class="box-body">
+          <div id="install_path_error" class="pb-2 text-danger d-none">
+            Please select an installation path to continue
+          </div>
           <div class="form-group">
             <label for="install_path">Install location</label>
             <div class="row">
               <div class="form-group col-6">
-                <input id="install_path" type="text" class="form-control" aria-describedby="install_path_help" value="c:\Program Files\MiningHQ"/>
+                <input id="install_path" type="text" class="form-control" aria-describedby="install_path_help" value=""/>
                 <small id="install_path_help" class="form-text text-muted">This is where the MiningHQ software will be installed on your rig</small>
               </div>
               <div class="form-group col-6">
@@ -124,7 +132,29 @@
           <small>Check that you are happy</small>
         </div>
         <div class="box-body">
-
+          <div class="row">
+            <div class="col-3 _600">
+              Rig Name
+            </div>
+            <div class="col-9">
+              <span id="confirm_rig_name">rig_name</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-3 _600">
+              Installation path
+            </div>
+            <div class="col-9">
+              <span id="confirm_install_path">install_path</span>
+            </div>
+          </div>
+        </div>
+        <div class="box-body">
+          <div class="row">
+            <div class="col-10">
+              <small>If you wish to change anything, click the back button</small>
+            </div>
+          </div>
         </div>
         <div class="modal-footer mt-0">
           <button class="btn dark-white wizard-continue" data-step="4" data-role="back"><i class="fa fa-fw fa-chevron-left"></i> Back</button>
@@ -136,45 +166,7 @@
     </div>
   </div>
   <script type="text/javascript">
-    var totalSteps = 5;
-
-    $(document).ready(function(){
-      $('.wizard-continue').bind('click', function(){
-        var buttonRole = $(this).data('role');
-        var buttonStep = $(this).data('step');
-        var nextStep = buttonStep + 1;
-        var previousStep = buttonStep - 1;
-
-        if (buttonRole == 'next')
-        {
-          if (nextStep < totalSteps)
-          {
-            $('#step_' + buttonStep).toggleClass('hide');
-            $('#step_' + nextStep).toggleClass('hide');
-            $('#step_' + buttonStep + '_index').toggleClass('text-white');
-            $('#step_' + nextStep + '_index').toggleClass('text-white');
-          }
-        }
-        else
-        {
-          if (previousStep > 0)
-          {
-            $('#step_' + buttonStep).toggleClass('hide');
-            $('#step_' + previousStep).toggleClass('hide');
-            $('#step_' + buttonStep + '_index').toggleClass('text-white');
-            $('#step_' + previousStep + '_index').toggleClass('text-white');
-          }
-        }
-      });
-
-      $('#install_path_selector').bind('click', function(){
-        astilectron.showOpenDialog({properties: ['openDirectory',], title: "My Title"}, function(path) {
-            $('#install_path').val(path);
-        });
-      });
-
-    });
-
+    installer.init();
   </script>
 </body>
 </html>
