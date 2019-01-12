@@ -15,6 +15,7 @@
 
     <script src="static/lib/astiloader/astiloader.js"></script>
     <script>window.$ = window.jQuery = require('./static/lib/jquery/jquery.min.js');</script>
+    <script src="static/lib/bootstrap.min.js"></script>
     <script src="static/js/shared.js"></script>
     <script src="static/js/installer.js"></script>
 </head>
@@ -163,6 +164,63 @@
           </button>
         </div>
       </div>
+      <div id="step_5" class="col-8 hide">
+        <div class="box-header text-dark light lt">
+          <h3>Installing...</h3>
+          <small>Setting up your rig</small>
+        </div>
+        <div class="box-body">
+          <div class="row">
+            <div class="col-3 _600">
+              Status
+            </div>
+          </div>
+          <div class="row">
+            <div id="install_progress" class="col-8">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer mt-0">
+          <button class="btn info wizard-continue" data-step="4" data-role="next">
+            Continue <i class="fa fa-fw fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="exclude_modal" class="modal" data-backdrop="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Miners and Antivirus</h5>
+        </div>
+        <div class="modal-body text-left p-lg">
+          <p>
+            Cryptocurrency miners are detected by most antivirus software and removed even though
+            they don't contain any viruses. To use this computer to mine cryptocurrencies you
+            need to exclude the miner installation path from being removed.
+          </p>
+          <p>
+            To protect you, the MiningHQ Mining Manager will regularly scan
+            the miners to verify that they have not been tampered with and
+            only contain our official releases.
+          </p>
+          <p>
+            The directory to exclude is <span id="exclude_path" class="d-block _600 border rounded p-2">miner_path</span>
+          </p>
+          <p>
+            If you are not sure how to exclude the directory, please visit our
+            <a class="text-link text-info" target="_blank" href="https://www.mininghq.io/help/antivirus">antivirus help page <i class="fa fa-fw fa-external-link"></i></a>
+            for tutorials.
+          </p>
+          <p class="text-warning">
+            You must exclude the miner if you wish to mine with this rig.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button id="exclude_confirm" type="button" class="btn success p-x-md" data-dismiss="modal">Ok, I've excluded the directory</button>
+        </div>
+      </div><!-- /.modal-content -->
     </div>
   </div>
   <script type="text/javascript">

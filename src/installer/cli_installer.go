@@ -487,7 +487,8 @@ running the installer from. If not, please download the Miner Manager again
 from https://www.mininghq.io/rigs
 `,
 		miningKeyPath)
-	miningKeyBytes, err := ioutil.ReadFile(miningKeyPath)
+
+	miningKey, err := installer.helper.GetMiningKeyFromFile(miningKeyPath)
 	if err != nil {
 		color.HiRed("FAIL")
 		fmt.Println(apiCreateError)
@@ -497,7 +498,7 @@ from https://www.mininghq.io/rigs
 		color.Unset()
 		os.Exit(1)
 	}
-	miningKey := strings.TrimSpace(string(miningKeyBytes))
+
 	apiClient, err := mhq.NewClient(miningKey, installer.mhqEndpoint)
 	if err != nil {
 		color.HiRed("FAIL")

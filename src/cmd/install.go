@@ -149,6 +149,9 @@ remove the files manually where you installed the services.
 			AppName,
 			Asset,
 			RestoreAssets,
+			homeDir,
+			runtime.GOOS,
+			apiEndpoint,
 			true, // TODO: Debug should come from somewhere else
 		)
 		if err != nil {

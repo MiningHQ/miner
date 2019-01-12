@@ -3,13 +3,19 @@ package installer
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"os/user"
+	"path/filepath"
 	"runtime"
 	"strings"
 
 	astilectron "github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
+	"github.com/donovansolms/mininghq-miner-controller/src/mhq"
+	"github.com/donovansolms/mininghq-spec/spec/caps"
+	"github.com/otiai10/copy"
 	"github.com/sirupsen/logrus"
 )
 
@@ -19,11 +25,27 @@ type GUIInstaller struct {
 	window *astilectron.Window
 	// astilectronOptions holds the Astilectron options
 	astilectronOptions bootstrap.Options
+
+	// homeDir is the user's home directory
+	homeDir string
+	// os is the system operating system
+	os string
+	// mhqEndpoint is the MiningHQ API endpoint to use
+	mhqEndpoint string
+
+	serviceName        string
+	serviceDisplayName string
+	serviceDescription string
+
 	// logger logs to stdout
 	logger *logrus.Entry
 
 	// helper functions
 	helper Helper
+
+	// Rig related information
+	rigName     string
+	installPath string
 }
 
 // NewGUI creates a new instance of the graphical installer
@@ -31,12 +53,18 @@ func NewGUI(
 	appName string,
 	asset bootstrap.Asset,
 	restoreAssets bootstrap.RestoreAssets,
+	homeDir string,
+	systemOS string,
+	apiEndpoint string,
 	isDebug bool) (*GUIInstaller, error) {
 
 	fmt.Println("AppNAme", appName)
 
 	gui := GUIInstaller{
-		helper: Helper{},
+		helper:      Helper{},
+		homeDir:     homeDir,
+		os:          systemOS,
+		mhqEndpoint: apiEndpoint,
 	}
 
 	// If no config is specified then this is the first run
@@ -205,11 +233,12 @@ func (gui *GUIInstaller) handleElectronCommands(
 			}, nil
 		}
 
-		installDir := strings.TrimSpace(payload["installPath"])
+		gui.rigName = strings.TrimSpace(payload["rigName"])
+		gui.installPath = strings.TrimSpace(payload["installPath"])
 
 		// TODO: Send message to electron we're installing
 
-		avExcludeDirectory, err := gui.helper.CreateInstallDirectories(installDir)
+		avExcludeDirectory, err := gui.helper.CreateInstallDirectories(gui.installPath)
 		if err != nil {
 			return map[string]string{
 				"status": "error",
@@ -219,15 +248,163 @@ ensure you have sufficient permissions (like Administrator or root) access
 to create directories in '%s'.
 
 Include the following error in your report: %s
-`, installDir, err.Error()),
+`, gui.installPath, err.Error()),
+			}, nil
+		}
+		// Return the exclude directory for antivirus
+		// and then wait for the confirmation to be sent to us to continue
+		return map[string]string{
+			"status":  "confirm-av",
+			"message": avExcludeDirectory,
+		}, nil
+
+	// Sent after the user confirmed the exclude of the miner path, we can
+	// continue with the install
+	case "confirmed-av":
+
+		// We need to know about the base system specs
+		systemInfo, err := caps.GetSystemInfo()
+		if err != nil {
+
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to determine the capabilities of this rig. Please ensure you
+have sufficient permissions to check installed hardware on this system.
+</p>
+<p>
+If you are sure you have the permissions, please contact support to resolve
+the issue. Support can be contacted via our help channels listed at
+https://www.mininghq.io/help
+</p>
+<p>
+Include the following error in your report '%s'"), err.Error())
+</p>`, err.Error()),
 			}, nil
 		}
 
-		// TODO: Return the query for AV exclude
+		_ = gui.sendElectronCommand("install_progress", map[string]string{
+			"status":  "ok",
+			"message": "Gather rig capabilities",
+		})
+
+		miningKeyPath := "mining_key"
+		apiCreateError := fmt.Sprintf(`
+We were unable to connect to the MiningHQ API to register your rig.
+Please check that the file '%s' is present in the same directory you are
+running the installer from. If not, please download the Miner Manager again
+from <a href="https://www.mininghq.io/rigs">https://www.mininghq.io/rigs</a>
+		`,
+			miningKeyPath)
+
+		// Get the mining key for the user
+		miningKey, err := gui.helper.GetMiningKeyFromFile(miningKeyPath)
+		if err != nil {
+			return map[string]string{
+				"status":  "error",
+				"message": fmt.Sprintf("%s<br/>Include the following error in your report: %s", apiCreateError, err.Error()),
+			}, nil
+		}
+
+		apiClient, err := mhq.NewClient(miningKey, gui.mhqEndpoint)
+		if err != nil {
+			return map[string]string{
+				"status":  "error",
+				"message": fmt.Sprintf("%s<br/>Include the following error in your report: %s", apiCreateError, err.Error()),
+			}, nil
+		}
+
+		registerRequest := mhq.RegisterRigRequest{
+			Name: gui.rigName,
+			Caps: systemInfo,
+		}
+		rigID, err := apiClient.RegisterRig(registerRequest)
+		if err != nil {
+
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to register your rig with MiningHQ. Please ensure that
+you are connected to the internet and that the file '%s' contains the same
+mining key that you can find under 'Mining' in your settings available at
+https://www.mininghq.io/user/settings
+</p>
+<p>
+If you are sure everything is in order, please contact support to resolve
+the issue. Support can be contacted via our help channels listed at
+<a href="https://www.mininghq.io/help">https://www.mininghq.io/help</a>
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, miningKeyPath, err.Error()),
+			}, nil
+		}
+
+		_ = gui.sendElectronCommand("install_progress", map[string]string{
+			"status":  "ok",
+			"message": "Register rig with MiningHQ",
+		})
+
+		// Creating files and copying
+		err = copy.Copy(
+			miningKeyPath,
+			filepath.Join(gui.installPath, "miner-controller", filepath.Base(miningKeyPath)))
+		if err != nil {
+
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to copy your mining key to your installation.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+
+		err = ioutil.WriteFile(
+			filepath.Join(gui.installPath, "miner-controller", "rig_id"),
+			[]byte(rigID),
+			0644)
+		if err != nil {
+
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to create the new rig files for your installation.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+
+		_ = gui.sendElectronCommand("install_progress", map[string]string{
+			"status":  "ok",
+			"message": "Create config files",
+		})
+
+		fmt.Print("Installing MiningHQ Miner\t\t")
+		// TODO: Test sudo needs
+		// TODO: Implement the standalone service installer if needs to
+
+		fmt.Println("TRING SUDO")
+		out, err := exec.Command("sudo", "ls", "/home/donovan/MiningHQ").CombinedOutput()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(out)
 
 		return map[string]string{
 			"status":  "ok",
-			"message": "Installing...",
+			"message": "",
 		}, nil
 
 	// Firstrun is received on the first run of the miner. We return the current
@@ -264,7 +441,7 @@ Include the following error in your report: %s
 // sendElectronCommand sends the given data to Electron under the command name
 func (gui *GUIInstaller) sendElectronCommand(
 	name string,
-	data interface{}) error {
+	data map[string]string) error {
 	dataBytes, err := json.Marshal(&data)
 	if err != nil {
 		return err

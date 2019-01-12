@@ -2,6 +2,7 @@ package installer
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,4 +44,13 @@ func (helper *Helper) CreateInstallDirectories(
 // directory exclude guides
 func (helper *Helper) GetOSAVGuides() string {
 	return fmt.Sprintf(`https://www.mininghq.io/help/antivirus`)
+}
+
+// GetMiningKeyFromFile reads the user's mining key from a file
+func (helper *Helper) GetMiningKeyFromFile(path string) (string, error) {
+	miningKeyBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(miningKeyBytes)), nil
 }

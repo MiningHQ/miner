@@ -31,7 +31,7 @@ let installer = {
   },
   listen: function() {
     astilectron.onMessage(function(message) {
-      var parsed = $.parseJSON(message.payload);
+      var data = $.parseJSON(message.payload);
       switch (message.name) {
         case "state":
 
@@ -48,9 +48,22 @@ let installer = {
 
           break;
 
-        case "update":
+        // Received on install progress
+        case "install_progress":
 
-          // Install update?
+          console.log("Install progress")
+          console.log(data);
+
+          // Append the status message to the list
+          if (data.status == 'ok')
+          {
+            $('#install_progress').append('<div class=""><i class="text-success fa fa-fw fa-check"></i> ' + data.message + '</div>');
+          }
+          else
+          {
+            $('#install_progress').append('<div class=""><i class="text-danger fa fa-fw fa-check"></i> ' + data.message + '</div>');
+          }
+
 
           break;
 
@@ -74,6 +87,9 @@ let installer = {
       return false;
     }
 
+    $('#step_4').addClass('hide');
+    $('#step_5').removeClass('hide');
+
     astilectron.sendMessage({
       name: "install",
       payload: {
@@ -81,6 +97,8 @@ let installer = {
         installPath: installPath,
       },
     }, function(message) {
+      console.log("RECEIVED")
+
       var data = message.payload;
       if (data.status == 'error')
       {
@@ -90,6 +108,11 @@ let installer = {
       {
         // TODO Show the installation progress
         console.log('show install progress');
+      }
+      else if (data.status == 'confirm-av')
+      {
+        $('#exclude_path').html(data.message);
+        $('#exclude_modal').modal();
       }
     });
 
@@ -175,6 +198,33 @@ let installer = {
       astilectron.showOpenDialog({properties: ['openDirectory',], title: "Select your installation directory"}, function(path) {
           $('#install_path').val(path);
           $('#install_path_error').addClass('d-none');
+      });
+    });
+
+    $('#exclude_confirm').bind('click', function(){
+      console.log("CONFIRMED!");
+
+      astilectron.sendMessage({
+        name: "confirmed-av",
+        payload: "",
+      }, function(message) {
+        console.log("RECEIVED RESPONSE confirmed-av")
+
+        var data = message.payload;
+        // if (data.status == 'error')
+        // {
+        //   alert('Unable to install: ' + data.message);
+        // }
+        // else if (data.status == 'ok')
+        // {
+        //   // TODO Show the installation progress
+        //   console.log('show install progress');
+        // }
+        // else if (data.status == 'confirm-av')
+        // {
+        //   $('#exlude_path').html(data.message);
+        //   $('#exclude_modal').modal();
+        // }
       });
     });
 
