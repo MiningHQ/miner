@@ -27,21 +27,22 @@ func main() {
 
 	flag.Parse()
 
+	serviceConfig := &service.Config{
+		Name:             serviceName,
+		DisplayName:      serviceDisplayName,
+		Description:      serviceDescription,
+		WorkingDirectory: installedPath,
+		Executable:       filepath.Join(installedPath, serviceFilename),
+	}
+	svc, err := service.New(nil, serviceConfig)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	operation = strings.ToLower(operation)
 	// Install mininghq-miner as a service
 	if operation == "install" {
-		serviceConfig := &service.Config{
-			Name:             serviceName,
-			DisplayName:      serviceDisplayName,
-			Description:      serviceDescription,
-			WorkingDirectory: installedPath,
-			Executable:       filepath.Join(installedPath, serviceFilename),
-		}
-		svc, err := service.New(nil, serviceConfig)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
 		err = svc.Install()
 		if err != nil {
 			fmt.Println(err)
@@ -51,14 +52,7 @@ func main() {
 
 	// Uninstall mininghq-miner service
 	if operation == "uninstall" {
-		serviceConfig := &service.Config{
-			Name:             serviceName,
-			DisplayName:      serviceDisplayName,
-			Description:      serviceDescription,
-			WorkingDirectory: installedPath,
-			Executable:       filepath.Join(installedPath, serviceFilename),
-		}
-		svc, err := service.New(nil, serviceConfig)
+		err = svc.Stop()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -71,7 +65,11 @@ func main() {
 	}
 
 	if operation == "start" {
-
+		err = svc.Start()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 
 }

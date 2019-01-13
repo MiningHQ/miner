@@ -262,8 +262,7 @@ We were unable to remove the MiningHQ files from '%s'.
 		fmt.Printf(`
 We were unable to remove the MiningHQ file from '%s'.
 `, installedPathFilepath)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -609,7 +608,6 @@ We were unable to extract the miner from the installer.
 		color.Unset()
 		os.Exit(1)
 	}
-	defer embeddedFile.Close()
 
 	installFile, err := os.OpenFile(
 		filepath.Join(installDir, embeddedFilename),
@@ -626,7 +624,6 @@ you have sufficient space on your harddrive.
 		color.Unset()
 		os.Exit(1)
 	}
-	defer installFile.Close()
 
 	_, err = io.Copy(installFile, embeddedFile)
 	if err != nil {
@@ -640,6 +637,8 @@ We were unable to install the miner to the correct location.
 		color.Unset()
 		os.Exit(1)
 	}
+	installFile.Close()
+	embeddedFile.Close()
 
 	// Install mininghq-miner as a service
 	// We do this using a separate executable so that only the service install
@@ -754,6 +753,25 @@ Please ensure you have the correct permissions to write to your home directory.
 
 	// Service installed
 	color.HiGreen("OK")
+
+	// Start the mininghq-miner service
+	// We do this using a separate executable so that only the service install
+	// requires Administrator/sudo rights and not the entire installer
+	out, err = exec.Command(
+		"sudo",
+		"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+		"-op", "start",
+		"-serviceName", installer.serviceName,
+		"-serviceDisplayName", installer.serviceDisplayName,
+		"-serviceDescription", installer.serviceDescription,
+		"-installedPath", installDir,
+		"-serviceFilename", embeddedFilename,
+	).CombinedOutput()
+	if err != nil {
+		fmt.Printf(`
+Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually. Reason: %s, %s
+		`, err.Error(), out)
+	}
 
 	// 	err = svc.Start() // TODO: Start doesn't start it, problems
 	// 	if err != nil {
