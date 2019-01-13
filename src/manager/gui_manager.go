@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -25,7 +26,8 @@ type GUIManager struct {
 	// managerClient is the client to the miner controller's manager API
 	managerClient rpcproto.ManagerServiceClient
 	// logger logs to stdout
-	logger *logrus.Entry
+	logger   *logrus.Entry
+	debugLog *os.File
 }
 
 // NewGUI creates a new instance of the graphical installer
@@ -66,17 +68,21 @@ func NewGUI(
 	}
 
 	if isDebug {
-		logrus.SetLevel(logrus.DebugLevel)
+		// Get current path
+		debugLogPath := filepath.Join(os.TempDir(), "mininghq_debug.log")
+		executable, err := os.Executable()
+		if err == nil {
+			debugLogPath = filepath.Join(filepath.Dir(executable), "mininghq_debug.log")
+		}
 
-		// debugLog, err := os.OpenFile(
-		// 	filepath.Join(gui.workingDir, "debug.log"),
-		// 	os.O_CREATE|os.O_TRUNC|os.O_WRONLY,
-		// 	0644)
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// // TODO: logrus.SetOutput(debugLog)
-		// _ = debugLog
+		gui.debugLog, err = os.OpenFile(
+			debugLogPath,
+			os.O_CREATE|os.O_TRUNC|os.O_WRONLY,
+			0644)
+		if err != nil {
+			panic(err)
+		}
+		logrus.SetOutput(gui.debugLog)
 
 		// We only show the menu bar in debug mode
 		menu = append(menu, &astilectron.MenuItemOptions{
@@ -160,16 +166,11 @@ func NewGUI(
 func (gui *GUIManager) Run() error {
 	gui.logger.Info("Starting manager")
 
-	// Setup the updating thread
-
 	err := bootstrap.Run(gui.astilectronOptions)
 	if err != nil {
 		return err
 	}
-	// err = gui.stopMiner()
-	// if err != nil {
-	// 	return err
-	// }
+	gui.debugLog.Close()
 	return nil
 }
 

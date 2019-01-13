@@ -30,6 +30,7 @@ var configFile string
 var noGUI bool
 var mustUninstall bool
 var apiEndpoint string
+var debug bool
 
 // Execute the main command
 func Execute() {
@@ -48,7 +49,7 @@ func Execute() {
 	}
 
 	if isInstalled() && mustUninstall == false{
-		fmt.Println("Installed already, run manager")
+		// Installed, run manager
 		if err := manageCmd.Execute(); err != nil {
 			fmt.Println(err)
 			os.Exit(1)

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -120,8 +119,6 @@ https://www.mininghq.io`,
 			return
 		}
 
-		fmt.Println("Run as GUI")
-
 		// If the '--no-gui' flag wasn't specified, we'll start the Electron
 		// interface
 		// AppName, Asset and RestoreAssets are injected by the bundler
@@ -130,7 +127,7 @@ https://www.mininghq.io`,
 			AppName,
 			Asset,
 			RestoreAssets,
-			false, // TODO: Debug should come from somewhere else
+			debug,
 		)
 		if err != nil {
 			// Setting the output to stdout so the user can see the error
@@ -150,5 +147,6 @@ https://www.mininghq.io`,
 
 func init() {
 	manageCmd.Flags().BoolVar(&noGUI, "no-gui", false, "Run the manager without GUI")
+	manageCmd.Flags().BoolVar(&debug, "debug", false, "Run the manager in debug mode, a log file will be created")
 	manageCmd.Flags().BoolVar(&mustUninstall, "uninstall", false, "Completely remove MiningHQ services from this system")
 }

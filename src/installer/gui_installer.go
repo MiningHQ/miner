@@ -43,7 +43,8 @@ type GUIInstaller struct {
 	logger *logrus.Entry
 
 	// helper functions
-	helper Helper
+	helper   Helper
+	debugLog *os.File
 
 	// Rig related information
 	rigName     string
@@ -59,8 +60,6 @@ func NewGUI(
 	systemOS string,
 	apiEndpoint string,
 	isDebug bool) (*GUIInstaller, error) {
-
-	fmt.Println("AppNAme", appName)
 
 	gui := GUIInstaller{
 		serviceName:        serviceName,
@@ -90,7 +89,7 @@ func NewGUI(
 	windowOptions := astilectron.WindowOptions{
 		// If frame is false, the window frame is removed. If isDebug is true,
 		// we show the frame to have debugging options available
-		Frame:           astilectron.PtrBool(false),
+		Frame:           astilectron.PtrBool(isDebug),
 		BackgroundColor: astilectron.PtrStr("#0B0C22"),
 		Center:          astilectron.PtrBool(true),
 		Width:           astilectron.PtrInt(900),
@@ -100,15 +99,21 @@ func NewGUI(
 	if isDebug {
 		logrus.SetLevel(logrus.DebugLevel)
 
-		// debugLog, err := os.OpenFile(
-		// 	filepath.Join(gui.workingDir, "debug.log"),
-		// 	os.O_CREATE|os.O_TRUNC|os.O_WRONLY,
-		// 	0644)
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// // TODO: logrus.SetOutput(debugLog)
-		// _ = debugLog
+		// Get current path
+		debugLogPath := filepath.Join(os.TempDir(), "mininghq_debug.log")
+		executable, err := os.Executable()
+		if err == nil {
+			debugLogPath = filepath.Join(filepath.Dir(executable), "mininghq_debug.log")
+		}
+
+		gui.debugLog, err = os.OpenFile(
+			debugLogPath,
+			os.O_CREATE|os.O_TRUNC|os.O_WRONLY,
+			0644)
+		if err != nil {
+			panic(err)
+		}
+		logrus.SetOutput(gui.debugLog)
 
 		// We only show the menu bar in debug mode
 		menu = append(menu, &astilectron.MenuItemOptions{
@@ -195,10 +200,7 @@ func (gui *GUIInstaller) Run() error {
 	if err != nil {
 		return err
 	}
-	// err = gui.stopMiner()
-	// if err != nil {
-	// 	return err
-	// }
+	gui.debugLog.Close()
 	return nil
 }
 

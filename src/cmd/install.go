@@ -97,7 +97,7 @@ remove the files manually where you installed the services.
 			homeDir,
 			runtime.GOOS,
 			apiEndpoint,
-			true, // TODO: Debug should come from somewhere else
+			debug,
 		)
 		if err != nil {
 			// Setting the output to stdout so the user can see the error
@@ -116,6 +116,7 @@ remove the files manually where you installed the services.
 }
 
 func init() {
+	installCmd.Flags().BoolVar(&debug, "debug", false, "Run the manager in debug mode, a log file will be created")
 	installCmd.Flags().BoolVar(&noGUI, "no-gui", false, "Run the manager without GUI")
 	installCmd.Flags().StringVar(&apiEndpoint, "api-endpoint", "http://mininghq.local/api/v1", "The base API endpoint for MiningHQ")
 	installCmd.Flags().BoolVar(&mustUninstall, "uninstall", false, "Completely remove MiningHQ services from this system")
