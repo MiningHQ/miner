@@ -26,6 +26,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -34,7 +35,6 @@ import (
 	"github.com/donovansolms/mininghq-miner-manager/src/embedded"
 	"github.com/donovansolms/mininghq-spec/spec/caps"
 	"github.com/fatih/color"
-	"github.com/kardianos/service"
 	"github.com/otiai10/copy"
 	input "github.com/tcnksm/go-input"
 )
@@ -203,41 +203,33 @@ https://www.mininghq.io/help
 	}
 
 	// Remove the service
-	fmt.Print("Removing the MiningHQ Miner service\t")
+	fmt.Print("Removing the MiningHQ Miner service\n")
 
 	serviceFilename := "mininghq-miner"
 	if strings.ToLower(runtime.GOOS) == "windows" {
 		serviceFilename = "mininghq-miner.exe"
 	}
-	// Create mininghq-miner as a service
-	serviceConfig := &service.Config{
-		Name:             installer.serviceName,
-		DisplayName:      installer.serviceDisplayName,
-		Description:      installer.serviceDescription,
-		WorkingDirectory: installedPath,
-		Executable:       filepath.Join(installedPath, serviceFilename),
-	}
-	svc, err := service.New(nil, serviceConfig)
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Printf(`
-We were unable to create the removing miner service.
-`)
-		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
-	}
-	err = svc.Uninstall()
+
+	// Uninstall mininghq-miner as a service
+	// We do this using a separate executable so that only the service uninstall
+	// requires Administrator/sudo rights and not the entire installer
+	out, err := exec.Command(
+		"sudo",
+		"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+		"-op", "uninstall",
+		"-serviceName", installer.serviceName,
+		"-serviceDisplayName", installer.serviceDisplayName,
+		"-serviceDescription", installer.serviceDescription,
+		"-installedPath", installedPath,
+		"-serviceFilename", serviceFilename,
+	).CombinedOutput()
 	if err != nil {
 		color.HiRed("FAIL")
 		fmt.Printf(`
 We were unable to uninstall the miner service (it might already be uninstalled).
 `)
 		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s'"), err.Error())
+			"Include the following error in your report '%s': %s"), err.Error(), out)
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -279,6 +271,27 @@ We were unable to remove the MiningHQ file from '%s'.
 	}
 	// Files removed
 	color.HiGreen("OK")
+
+	fmt.Printf(`
+
+
+***************************
+*  MiningHQ uninstalled!  *
+***************************
+
+The MiningHQ Miner Manager and related services have been uninstalled. If you
+wish to add this rig back, visit the rigs page and click 'add rig'
+
+https://www.mininghq.io/rigs
+
+Please join the MiningHQ community on Discord, Twitter and elsewhere, you can find
+all our channels at https://www.mininghq.io/connect
+
+We hope we see you again,
+The MiningHQ Team
+	`)
+
+	fmt.Println()
 	fmt.Println()
 
 	return nil
@@ -577,7 +590,7 @@ We were unable to create the new rig files for your installation.
 
 	// The MiningHQ miner service is embedded into this installer
 	// It needs to be extracted into the installation directory
-	fmt.Print("Installing MiningHQ Miner\t\t")
+	fmt.Print("Installing MiningHQ Miner\n")
 
 	embeddedFilename := "mininghq-miner"
 	if strings.ToLower(runtime.GOOS) == "windows" {
@@ -629,43 +642,65 @@ We were unable to install the miner to the correct location.
 	}
 
 	// Install mininghq-miner as a service
-	serviceConfig := &service.Config{
-		Name:             installer.serviceName,
-		DisplayName:      installer.serviceDisplayName,
-		Description:      installer.serviceDescription,
-		WorkingDirectory: installDir,
-		Executable:       filepath.Join(installDir, embeddedFilename),
-	}
-	svc, err := service.New(nil, serviceConfig)
+	// We do this using a separate executable so that only the service install
+	// requires Administrator/sudo rights and not the entire installer
+	out, err := exec.Command(
+		"sudo",
+		"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+		"-op", "install",
+		"-serviceName", installer.serviceName,
+		"-serviceDisplayName", installer.serviceDisplayName,
+		"-serviceDescription", installer.serviceDescription,
+		"-installedPath", installDir,
+		"-serviceFilename", embeddedFilename,
+	).CombinedOutput()
 	if err != nil {
 		color.HiRed("FAIL")
-		fmt.Printf(`
-We were unable to create the miner service.
-`)
-		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
-	}
-	err = svc.Install()
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Printf(`
-We were unable to install the miner service.
-`)
-		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+		fmt.Println("We were unable to install the miner service.")
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s', %s"), err.Error(), out)
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
 		os.Exit(1)
 	}
 
+	// 	serviceConfig := &service.Config{
+	// 		Name:             installer.serviceName,
+	// 		DisplayName:      installer.serviceDisplayName,
+	// 		Description:      installer.serviceDescription,
+	// 		WorkingDirectory: installDir,
+	// 		Executable:       filepath.Join(installDir, embeddedFilename),
+	// 	}
+	// 	svc, err := service.New(nil, serviceConfig)
+	// 	if err != nil {
+	// 		color.HiRed("FAIL")
+	// 		fmt.Printf(`
+	// We were unable to create the miner service.
+	// `)
+	// 		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+	// 		fmt.Println()
+	// 		fmt.Println()
+	// 		color.Unset()
+	// 		os.Exit(1)
+	// 	}
+	// 	err = svc.Install()
+	// 	if err != nil {
+	// 		color.HiRed("FAIL")
+	// 		fmt.Printf(`
+	// We were unable to install the miner service.
+	// `)
+	// 		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+	// 		fmt.Println()
+	// 		fmt.Println()
+	// 		color.Unset()
+	// 		os.Exit(1)
+	// 	}
+
 	installedCheckfilePath := filepath.Join(installer.homeDir, ".mhqpath")
 	installedCheckfile, err := os.OpenFile(
 		installedCheckfilePath,
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0655)
+		0644)
 	if err != nil {
 		fmt.Printf(`
 We were unable to create the installer check file in ~/.mhqpath. This
@@ -720,12 +755,12 @@ Please ensure you have the correct permissions to write to your home directory.
 	// Service installed
 	color.HiGreen("OK")
 
-	err = svc.Start() // TODO: Start doesn't start it, problems
-	if err != nil {
-		fmt.Printf(`
-Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually.
-`)
-	}
+	// 	err = svc.Start() // TODO: Start doesn't start it, problems
+	// 	if err != nil {
+	// 		fmt.Printf(`
+	// Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually.
+	// `)
+	// 	}
 
 	fmt.Printf(`
 
