@@ -10,6 +10,9 @@ import (
 	"github.com/kardianos/service"
 )
 
+// main runs one of three operations, install, uninstall or start
+// This is a standalone tool so that the GUI and CLI installers don't have
+// to be run as sudo/administrator but rather only sudo the service install
 func main() {
 	var operation string
 	var serviceName string

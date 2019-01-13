@@ -406,10 +406,13 @@ Include the following error in your report '%s'
 
 		// Install the miner and service
 		embeddedFilename := "mininghq-miner"
+		embeddedServiceInstallerFilename := "install-service"
 		if strings.ToLower(runtime.GOOS) == "windows" {
 			embeddedFilename = "mininghq-miner.exe"
+			embeddedServiceInstallerFilename = "install-service.exe"
 		}
 		embeddedFS := embedded.FS(false)
+		// Extract the miner service
 		embeddedFile, err := embeddedFS.Open("/miner-service/" + embeddedFilename)
 		if err != nil {
 			return map[string]string{
@@ -461,12 +464,64 @@ Include the following error in your report '%s'
 		installFile.Close()
 		embeddedFile.Close()
 
+		// Extract the service installer
+		embeddedFile, err = embeddedFS.Open("/miner-service/" + embeddedServiceInstallerFilename)
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to extract the service installer from the installer.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+
+		installFile, err = os.OpenFile(
+			filepath.Join(gui.installPath, embeddedServiceInstallerFilename),
+			os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to create the service installer in the correct location. Please check that
+you have sufficient space on your harddrive.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+
+		_, err = io.Copy(installFile, embeddedFile)
+		if err != nil {
+
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to install the service installer to the correct location.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+		installFile.Close()
+		embeddedFile.Close()
+
 		// Install mininghq-miner as a service
 		// We do this using a separate executable so that only the service install
 		// requires Administrator/sudo rights and not the entire installer
 		out, err := exec.Command(
 			"pkexec",
-			"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+			filepath.Join(gui.installPath, embeddedServiceInstallerFilename),
 			"-op", "install",
 			"-serviceName", gui.serviceName,
 			"-serviceDisplayName", gui.serviceDisplayName,
@@ -580,7 +635,7 @@ Include the following error in your report '%s'
 		// requires Administrator/sudo rights and not the entire installer
 		out, err = exec.Command(
 			"pkexec",
-			"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+			filepath.Join(gui.installPath, embeddedServiceInstallerFilename),
 			"-op", "start",
 			"-serviceName", gui.serviceName,
 			"-serviceDisplayName", gui.serviceDisplayName,

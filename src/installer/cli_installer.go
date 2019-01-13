@@ -206,8 +206,10 @@ https://www.mininghq.io/help
 	fmt.Print("Removing the MiningHQ Miner service\n")
 
 	serviceFilename := "mininghq-miner"
+	serviceInstallerFilename := "install-service"
 	if strings.ToLower(runtime.GOOS) == "windows" {
 		serviceFilename = "mininghq-miner.exe"
+		serviceInstallerFilename = "install-service.exe"
 	}
 
 	// Uninstall mininghq-miner as a service
@@ -215,7 +217,7 @@ https://www.mininghq.io/help
 	// requires Administrator/sudo rights and not the entire installer
 	out, err := exec.Command(
 		"sudo",
-		"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+		filepath.Join(installedPath, serviceInstallerFilename),
 		"-op", "uninstall",
 		"-serviceName", installer.serviceName,
 		"-serviceDisplayName", installer.serviceDisplayName,
@@ -592,8 +594,10 @@ We were unable to create the new rig files for your installation.
 	fmt.Print("Installing MiningHQ Miner\n")
 
 	embeddedFilename := "mininghq-miner"
+	embeddedServiceInstallerFilename := "install-service"
 	if strings.ToLower(runtime.GOOS) == "windows" {
 		embeddedFilename = "mininghq-miner.exe"
+		embeddedServiceInstallerFilename = "install-service.exe"
 	}
 	embeddedFS := embedded.FS(false)
 	embeddedFile, err := embeddedFS.Open("/miner-service/" + embeddedFilename)
@@ -640,12 +644,57 @@ We were unable to install the miner to the correct location.
 	installFile.Close()
 	embeddedFile.Close()
 
+	// Extract the service installer
+	embeddedFile, err = embeddedFS.Open("/miner-service/" + embeddedServiceInstallerFilename)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to extract the service installer from the installer.
+`)
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+
+	installFile, err = os.OpenFile(
+		filepath.Join(installDir, embeddedServiceInstallerFilename),
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to create the service installer in the correct location. Please check that
+you have sufficient space on your harddrive.
+`)
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+
+	_, err = io.Copy(installFile, embeddedFile)
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to install the service installer to the correct location.
+		`)
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+	installFile.Close()
+	embeddedFile.Close()
+
 	// Install mininghq-miner as a service
 	// We do this using a separate executable so that only the service install
 	// requires Administrator/sudo rights and not the entire installer
 	out, err := exec.Command(
 		"sudo",
-		"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+		filepath.Join(installDir, embeddedServiceInstallerFilename),
 		"-op", "install",
 		"-serviceName", installer.serviceName,
 		"-serviceDisplayName", installer.serviceDisplayName,
@@ -727,7 +776,7 @@ Please ensure you have the correct permissions to write to your home directory.
 	// requires Administrator/sudo rights and not the entire installer
 	out, err = exec.Command(
 		"sudo",
-		"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+		filepath.Join(installDir, embeddedServiceInstallerFilename),
 		"-op", "start",
 		"-serviceName", installer.serviceName,
 		"-serviceDisplayName", installer.serviceDisplayName,
