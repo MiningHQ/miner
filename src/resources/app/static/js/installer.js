@@ -211,20 +211,16 @@ let installer = {
         console.log("RECEIVED RESPONSE confirmed-av")
 
         var data = message.payload;
-        // if (data.status == 'error')
-        // {
-        //   alert('Unable to install: ' + data.message);
-        // }
-        // else if (data.status == 'ok')
-        // {
-        //   // TODO Show the installation progress
-        //   console.log('show install progress');
-        // }
-        // else if (data.status == 'confirm-av')
-        // {
-        //   $('#exlude_path').html(data.message);
-        //   $('#exclude_modal').modal();
-        // }
+        if (data.status == 'error')
+        {
+          alert('Unable to install: ' + data.message);
+        }
+        else if (data.status == 'ok')
+        {
+          // TODO Show the installation progress
+          console.log('show install progress');
+          alert("installed");
+        }
       });
     });
 

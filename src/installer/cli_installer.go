@@ -72,9 +72,9 @@ func New(homeDir string, os string, mhqEndpoint string) (*CLIInstaller, error) {
 		homeDir:            homeDir,
 		os:                 os,
 		mhqEndpoint:        mhqEndpoint,
-		serviceName:        "GoServiceExampleLogging",
-		serviceDisplayName: "Go Service Example for Logging",
-		serviceDescription: "This is an example Go service that outputs log messages.",
+		serviceName:        serviceName,
+		serviceDisplayName: serviceDisplayName,
+		serviceDescription: serviceDescription,
 		helper:             Helper{},
 	}
 	return &installer, nil
@@ -663,38 +663,6 @@ We were unable to install the miner to the correct location.
 		os.Exit(1)
 	}
 
-	// 	serviceConfig := &service.Config{
-	// 		Name:             installer.serviceName,
-	// 		DisplayName:      installer.serviceDisplayName,
-	// 		Description:      installer.serviceDescription,
-	// 		WorkingDirectory: installDir,
-	// 		Executable:       filepath.Join(installDir, embeddedFilename),
-	// 	}
-	// 	svc, err := service.New(nil, serviceConfig)
-	// 	if err != nil {
-	// 		color.HiRed("FAIL")
-	// 		fmt.Printf(`
-	// We were unable to create the miner service.
-	// `)
-	// 		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
-	// 		fmt.Println()
-	// 		fmt.Println()
-	// 		color.Unset()
-	// 		os.Exit(1)
-	// 	}
-	// 	err = svc.Install()
-	// 	if err != nil {
-	// 		color.HiRed("FAIL")
-	// 		fmt.Printf(`
-	// We were unable to install the miner service.
-	// `)
-	// 		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
-	// 		fmt.Println()
-	// 		fmt.Println()
-	// 		color.Unset()
-	// 		os.Exit(1)
-	// 	}
-
 	installedCheckfilePath := filepath.Join(installer.homeDir, ".mhqpath")
 	installedCheckfile, err := os.OpenFile(
 		installedCheckfilePath,
@@ -731,7 +699,7 @@ Please ensure you have the correct permissions to write to your home directory.
 		fmt.Printf(`
 We were unable to copy the miner manager to your installation path.
 
-Please ensure you have the correct permissions to write to your home directory.
+Please ensure you have the correct permissions to write to your install directory.
 	`)
 		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
 		fmt.Println()

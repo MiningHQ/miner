@@ -3,6 +3,7 @@ package installer
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -14,6 +15,7 @@ import (
 	astilectron "github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
 	"github.com/donovansolms/mininghq-miner-controller/src/mhq"
+	"github.com/donovansolms/mininghq-miner-manager/src/embedded"
 	"github.com/donovansolms/mininghq-spec/spec/caps"
 	"github.com/otiai10/copy"
 	"github.com/sirupsen/logrus"
@@ -61,10 +63,13 @@ func NewGUI(
 	fmt.Println("AppNAme", appName)
 
 	gui := GUIInstaller{
-		helper:      Helper{},
-		homeDir:     homeDir,
-		os:          systemOS,
-		mhqEndpoint: apiEndpoint,
+		serviceName:        serviceName,
+		serviceDisplayName: serviceDisplayName,
+		serviceDescription: serviceDescription,
+		helper:             Helper{},
+		homeDir:            homeDir,
+		os:                 systemOS,
+		mhqEndpoint:        apiEndpoint,
 	}
 
 	// If no config is specified then this is the first run
@@ -391,16 +396,206 @@ Include the following error in your report '%s'
 			"message": "Create config files",
 		})
 
-		fmt.Print("Installing MiningHQ Miner\t\t")
-		// TODO: Test sudo needs
-		// TODO: Implement the standalone service installer if needs to
-
-		fmt.Println("TRING SUDO")
-		out, err := exec.Command("sudo", "ls", "/home/donovan/MiningHQ").CombinedOutput()
-		if err != nil {
-			panic(err)
+		// Install the miner and service
+		embeddedFilename := "mininghq-miner"
+		if strings.ToLower(runtime.GOOS) == "windows" {
+			embeddedFilename = "mininghq-miner.exe"
 		}
-		fmt.Println(out)
+		embeddedFS := embedded.FS(false)
+		embeddedFile, err := embeddedFS.Open("/miner-service/" + embeddedFilename)
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to extract the miner from the installer.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+
+		installFile, err := os.OpenFile(
+			filepath.Join(gui.installPath, embeddedFilename),
+			os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to create the miner in the correct location. Please check that
+you have sufficient space on your harddrive.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+
+		_, err = io.Copy(installFile, embeddedFile)
+		if err != nil {
+
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to install the miner to the correct location.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+		installFile.Close()
+		embeddedFile.Close()
+
+		// Install mininghq-miner as a service
+		// We do this using a separate executable so that only the service install
+		// requires Administrator/sudo rights and not the entire installer
+		out, err := exec.Command(
+			"pkexec",
+			"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+			"-op", "install",
+			"-serviceName", gui.serviceName,
+			"-serviceDisplayName", gui.serviceDisplayName,
+			"-serviceDescription", gui.serviceDescription,
+			"-installedPath", gui.installPath,
+			"-serviceFilename", embeddedFilename,
+		).CombinedOutput()
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to install the miner service.
+</p>
+<p>
+Include the following error in your report '%s', %s
+</p>
+				`, err.Error(), out),
+			}, nil
+		}
+
+		installedCheckfilePath := filepath.Join(gui.homeDir, ".mhqpath")
+		installedCheckfile, err := os.OpenFile(
+			installedCheckfilePath,
+			os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+			0644)
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to create the installer check file in ~/.mhqpath. This
+will cause MiningHQ services to be unable to detect the installation.
+</p>
+<p>
+Please ensure you have the correct permissions to write to your home directory.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+		defer installedCheckfile.Close()
+
+		_, err = installedCheckfile.WriteString(gui.installPath)
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to write to the installer check file in ~/.mhqpath. This
+will cause MiningHQ services to be unable to detect the installation.
+</p>
+<p>
+Please ensure you have the correct permissions to write to your home directory.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+
+		// Copy the manager
+		managerBinaryPath, err := os.Executable()
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to copy the miner manager to your installation path.
+</p>
+<p>
+Please ensure you have the correct permissions to write to your install directory.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+
+		managerName := filepath.Base(managerBinaryPath)
+		err = os.Rename(managerBinaryPath, filepath.Join(gui.installPath, managerName))
+		if err != nil {
+
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to copy the miner manager to your installation path.
+</p>
+<p>
+Please ensure you have the correct permissions to write to your install directory.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+				`, err.Error()),
+			}, nil
+		}
+
+		_ = gui.sendElectronCommand("install_progress", map[string]string{
+			"status":  "ok",
+			"message": "Installing MiningHQ Miner",
+		})
+
+		// Start the mininghq-miner service
+		// We do this using a separate executable so that only the service install
+		// requires Administrator/sudo rights and not the entire installer
+		out, err = exec.Command(
+			"pkexec",
+			"/home/donovan/Development/Go/code/src/github.com/donovansolms/mininghq-miner-manager/install-service/install-service",
+			"-op", "start",
+			"-serviceName", gui.serviceName,
+			"-serviceDisplayName", gui.serviceDisplayName,
+			"-serviceDescription", gui.serviceDescription,
+			"-installedPath", gui.installPath,
+			"-serviceFilename", embeddedFilename,
+		).CombinedOutput()
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to copy the miner manager to your installation path.
+</p>
+<p>
+Please ensure you have the correct permissions to write to your install directory.
+</p>
+<p>
+Include the following error in your report '%s', %s
+</p>
+				`, err.Error(), out),
+			}, nil
+		}
 
 		return map[string]string{
 			"status":  "ok",

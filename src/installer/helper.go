@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+const (
+	serviceName        = "GoServiceExampleLogging"
+	serviceDisplayName = "Go Service Example for Logging"
+	serviceDescription = "This is an example Go service that outputs log messages."
+)
+
 // Helper contains shares helper install functions
 type Helper struct {
 }
