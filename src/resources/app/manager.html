@@ -15,11 +15,13 @@
 
     <script src="static/lib/astiloader/astiloader.js"></script>
     <script>window.$ = window.jQuery = require('./static/lib/jquery/jquery.min.js');</script>
+    <script src="static/lib/bootstrap.min.js"></script>
     <script src="static/js/shared.js"></script>
     <script src="static/js/manager.js"></script>
 </head>
 <body>
   <body>
+    <div class="draggable"></div>
     <div class="h-v m-0 mhq-wizard d-flex">
       <div class="m-0 p-0 row box bg-white box-radius-1 box-shadow-1 col-12">
         <div class="col-4 overview">
@@ -55,6 +57,9 @@
           <div class="text-center">
             <a id="rig_link" href="#" class="btn btn-info">Manage rig on MiningHQ <i class="fa fa-fw fa-external-link"></i></a>
           </div>
+          <a class="abort_install exit btn text-link text-warn wizard-continue" data-role="exit" style="position: absolute; bottom: 10px;">
+            Exit manager
+          </a>
         </div>
         <div class="col-8">
           <div class="box-header text-dark light lt row">
@@ -73,6 +78,23 @@ Logs not available yet or rig is not mining
             </pre>
           </div>
         </div>
+      </div>
+    </div>
+    <div id="error_modal" class="modal" data-backdrop="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">An error occurred</h5>
+          </div>
+          <div class="modal-body text-left p-lg">
+            <p id="error_list">
+
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn success p-x-md" data-dismiss="modal">Ok</button>
+          </div>
+        </div><!-- /.modal-content -->
       </div>
     </div>
     <script type="text/javascript">

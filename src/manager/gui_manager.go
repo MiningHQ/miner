@@ -266,7 +266,18 @@ func (gui *GUIManager) handleElectronCommands(
 		if err != nil {
 			gui.logger.WithField(
 				"method", "setup",
-			).Fatalf("Unable to query miner controller: %s", err)
+			).Errorf("Unable to query miner controller: %s", err)
+
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+Unable to query miner controller, please ensure the MiningHQ Miner service is running.
+</p>
+<p>
+%s
+</p>`, err),
+			}, nil
 		}
 
 		// Send the initial setup packet

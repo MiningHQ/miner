@@ -20,9 +20,10 @@
     <script src="static/js/installer.js"></script>
 </head>
 <body>
+  <div class="draggable"></div>
   <div class="h-v m-0 mhq-wizard d-flex">
     <div class="m-0 p-0 row box bg-white box-radius-1 box-shadow-1 col-12">
-      <div class="col-4 overview">
+      <div class="col-4 overview pt-3">
         <div class="text-center">
           <img src="static/i/mininghq_logo_vertical.png">
         </div>
@@ -46,8 +47,11 @@
             <i class="fa fa-fw fa-chevron-right"></i> What's next?
           </div>
         </div>
+        <a class="abort_install exit btn text-link text-warn wizard-continue" data-role="exit" style="position: absolute; bottom: 10px;">
+          Abort installation
+        </a>
       </div>
-      <div id="step_1" class="col-8">
+      <div id="step_1" class="col-8 pt-3">
         <div class="box-header text-dark light lt">
           <h3>Welcome to the Mining HQ miner installer</h3>
           <small>The software to manage your mining</small>
@@ -76,7 +80,7 @@
           </button>
         </div>
       </div>
-      <div id="step_2" class="col-8 hide">
+      <div id="step_2" class="col-8 hide pt-3">
         <div class="box-header text-dark light lt">
           <h3>Name this rig</h3>
           <small>Short and discriptive</small>
@@ -98,7 +102,7 @@
           </button>
         </div>
       </div>
-      <div id="step_3" class="col-8 hide">
+      <div id="step_3" class="col-8 hide pt-3">
         <div class="box-header text-dark light lt">
           <h3>Install location</h3>
           <small>Where you wish to install to</small>
@@ -127,7 +131,7 @@
           </button>
         </div>
       </div>
-      <div id="step_4" class="col-8 hide">
+      <div id="step_4" class="col-8 hide pt-3">
         <div class="box-header text-dark light lt">
           <h3>Confirm</h3>
           <small>Check that you are happy</small>
@@ -164,7 +168,7 @@
           </button>
         </div>
       </div>
-      <div id="step_5" class="col-8 hide">
+      <div id="step_5" class="col-8 hide pt-3">
         <div class="box-header text-dark light lt">
           <h3>Installing...</h3>
           <small>Setting up your rig</small>
@@ -178,11 +182,63 @@
           <div class="row">
             <div id="install_progress" class="col-8">
             </div>
+            <div id="install_error" class="col-8 alert danger m-3 hide">
+            </div>
           </div>
         </div>
         <div class="modal-footer mt-0">
           <button class="btn info wizard-continue" data-step="4" data-role="next">
             Continue <i class="fa fa-fw fa-chevron-right"></i>
+          </button>
+          <button class="exit btn info wizard-continue hide" data-role="exit">
+            Exit installer
+          </button>
+        </div>
+      </div>
+      <div id="step_6" class="col-8 hide pt-3">
+        <div class="box-header text-dark light lt">
+          <h3>What's next</h3>
+          <small>Installation is now complete</small>
+        </div>
+        <div class="box-body">
+          <div class="row">
+            <div class="col-6 alert success">
+              All MiningHQ services have been installed!
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-8">
+              <p>
+                Now that everything is installed and running, you may configure
+                mining for this rig on your MiningHQ dashboard
+              </p>
+              <p>
+                <a class="btn btn-info" href="https://www.mininghq.io/rigs">Visit your rigs <i class="fa fa-fw fa-chevron-right"></i></a>
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-8">
+              <p>
+                If you wish to learn more about mininig, visit the MiningHQ bootcamp where we cover the most important topics
+                related to cryptocurrency mininig.
+              </p>
+              <p>
+                <a class="btn btn-info" href="https://www.mininghq.io/bootcamp">Visit bootcamp <i class="fa fa-fw fa-chevron-right"></i></a>
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-8">
+              <small>
+                If you wish to uninstall MiningHQ from this rig, you'll find the uninstall tools in your installation directory.
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer mt-0">
+          <button class="exit btn info wizard-continue" data-step="5" data-role="exit">
+            Close installer
           </button>
         </div>
       </div>

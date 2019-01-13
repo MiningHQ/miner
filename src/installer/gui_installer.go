@@ -90,11 +90,11 @@ func NewGUI(
 	windowOptions := astilectron.WindowOptions{
 		// If frame is false, the window frame is removed. If isDebug is true,
 		// we show the frame to have debugging options available
-		Frame:           astilectron.PtrBool(isDebug),
+		Frame:           astilectron.PtrBool(false),
 		BackgroundColor: astilectron.PtrStr("#0B0C22"),
 		Center:          astilectron.PtrBool(true),
-		Height:          astilectron.PtrInt(700),
-		Width:           astilectron.PtrInt(1175),
+		Width:           astilectron.PtrInt(900),
+		Height:          astilectron.PtrInt(600),
 	}
 
 	if isDebug {
@@ -214,6 +214,12 @@ func (gui *GUIInstaller) handleElectronCommands(
 	// Every Electron command has a name together with a payload containing the
 	// actual message
 	switch command.Name {
+
+	case "get-defaults":
+		return map[string]string{
+			"status":  "ok",
+			"message": filepath.Join(gui.homeDir, "MiningHQ"),
+		}, nil
 
 	case "install":
 

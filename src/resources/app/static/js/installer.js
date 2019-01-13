@@ -27,6 +27,17 @@ let installer = {
 
         installer.bindEvents();
         installer.listen();
+
+        // Ask the installer for default settings
+        astilectron.sendMessage({
+          name: "get-defaults",
+          payload: "",
+        }, function(message) {
+          var data = message.payload;
+          // data.message will contains the default install path
+          $('#install_path').val(data.message);
+        });
+
       })
   },
   listen: function() {
@@ -173,7 +184,7 @@ let installer = {
           currentStep++;
         }
       }
-      else
+      else if (buttonRole == 'previous')
       {
         if (previousStep > 0)
         {
@@ -184,6 +195,10 @@ let installer = {
           currentStep--;
         }
       }
+      else if (buttonRole == 'exit')
+      {
+        // TODO: Exit
+      }
 
       if (currentStep == 4) // Confirmed page, set name and install path
       {
@@ -192,6 +207,10 @@ let installer = {
       }
 
 
+    });
+
+    $('.exit').bind('click', function(){
+       remote.getCurrentWindow().close();
     });
 
     $('#install_path_selector').bind('click', function(){
@@ -213,13 +232,20 @@ let installer = {
         var data = message.payload;
         if (data.status == 'error')
         {
-          alert('Unable to install: ' + data.message);
+          $('.wizard-continue').addClass('hide');
+          $('.exit').removeClass('hide');
+
+          $('#install_error').html(data.message);
+          $('#install_error').removeClass('hide');
         }
         else if (data.status == 'ok')
         {
-          // TODO Show the installation progress
-          console.log('show install progress');
-          alert("installed");
+          $('.abort_install').addClass('hide');
+          $('#step_4_index').toggleClass('text-white');
+          $('#step_5_index').toggleClass('text-white');
+          // Installation done!
+          $('#step_5').addClass('hide');
+          $('#step_6').removeClass('hide');
         }
       });
     });

@@ -22,7 +22,9 @@ let manager = {
           name: "ready",
           payload: ""
         }, function(message) {
-
+          // Show modal with error
+          $('#error_list').html(message.payload.message);
+          $('#error_modal').modal();
         });
 
         manager.bindEvents();
@@ -74,6 +76,10 @@ let manager = {
   },
   // Bind to UI events using jQuery
   bindEvents: function() {
+
+    $('.exit').bind('click', function(){
+       remote.getCurrentWindow().close();
+    });
 
     // $('.header-button.help').bind('click', function(){
     //   $('#help').toggleClass('dn');

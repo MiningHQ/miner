@@ -130,7 +130,7 @@ https://www.mininghq.io`,
 			AppName,
 			Asset,
 			RestoreAssets,
-			true, // TODO: Debug should come from somewhere else
+			false, // TODO: Debug should come from somewhere else
 		)
 		if err != nil {
 			// Setting the output to stdout so the user can see the error
