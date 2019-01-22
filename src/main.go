@@ -2,7 +2,8 @@
   MiningHQ Miner Manager - The MiningHQ Miner Manager GUI
   https://mininghq.io
 
-  Copyright (C) 2018  Donovan Solms     <https://github.com/donovansolms>
+	Copyright (C) 2018  Donovan Solms     <https://github.com/donovansolms>
+                                        <https://github.com/mininghq>
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
