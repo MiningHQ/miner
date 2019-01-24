@@ -315,12 +315,14 @@ func (installer *CLIInstaller) InstallSync() error {
                      /___/ Miner Installer
                            www.mininghq.io
 
-This installer will install the MiningHQ Miner Manager.
-The Miner Manager connects to your MiningHQ account to allow you to control
-all your mining rigs easily.
+You are about to install the MiningHQ Miner on this rig. This will
+enable you to manage your mining, tweak your performance settings
+and see this rig's stats - all from your dashboard.
 
-The setup will guide you through the steps now,
-the installation will take less than 5 minutes`)
+Let's set up this rig.
+
+We refer to any computer used to mine cryptocurrencies as a rig.
+`)
 
 	ui := &input.UI{}
 	installDir := filepath.Join(installer.homeDir, "MiningHQ")

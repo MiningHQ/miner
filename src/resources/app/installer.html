@@ -59,15 +59,12 @@
         </div>
         <div class="box-body">
           <p class="mb-2">
-            <span class="text-white danger">TODO: Write intro</span>
+            You are about to install the MiningHQ Miner on this rig. This will
+            enable you to manage your mining, tweak your performance settings
+            and see this rig's stats &mdash; all from your dashboard.
           </p>
           <p class="mb-2">
-            Until now, cryptocurrency mining has been something only the technical minded among us
-            attempted, MiningHQ is here to make it accessible to everyone because we believe
-            that more people should hold some cryptocurrencies.
-          </p>
-          <p class="mb-2">
-            Let's set up your first rig.
+            Let's set up this rig.
           </p>
 
           <div class="ml-1 pl-2 b-l b-l-warn b-l-5x text-warn">
@@ -91,9 +88,12 @@
             Please enter a rig name to continue
           </div>
           <div class="form-group">
-            <label for="rig_name">Rig name</label>
+            <label for="rig_name">Rig name</label><br />
             <input type="text" class="form-control" id="rig_name" aria-describedby="rig_name_help" placeholder="Geforce Gaming PC">
-            <small id="rig_name_help" class="form-text text-muted">You'll use your rig name to easily identify this rig on MiningHQ</small>
+            <small id="rig_name_help" class="form-text text-muted">
+              You'll use your rig name to easily identify this rig on MiningHQ<br />
+              Tip: Don't include the word 'rig' in the rig name
+            </small>
           </div>
         </div>
         <div class="modal-footer mt-0">
@@ -117,7 +117,7 @@
             <div class="row">
               <div class="form-group col-6">
                 <input id="install_path" type="text" class="form-control" aria-describedby="install_path_help" value=""/>
-                <small id="install_path_help" class="form-text text-muted">This is where the MiningHQ software will be installed on your rig</small>
+                <small id="install_path_help" class="form-text text-muted">This is where the MiningHQ software will be installed on this rig</small>
               </div>
               <div class="form-group col-6">
                 <button id="install_path_selector" class="btn white">Change location ...</button>
