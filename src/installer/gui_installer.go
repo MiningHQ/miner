@@ -270,7 +270,7 @@ func (gui *GUIInstaller) handleElectronCommands(
 		gui.rigName = strings.TrimSpace(payload["rigName"])
 		gui.installPath = strings.TrimSpace(payload["installPath"])
 
-		// TODO: Send message to electron we're installing
+		// Send message to electron we're installing
 
 		avExcludeDirectory, err := gui.helper.CreateInstallDirectories(gui.installPath)
 		if err != nil {
