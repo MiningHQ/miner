@@ -21,45 +21,49 @@
 
 // Package main implements the main runnable for the miner manager.
 // It constructs and launches the Electron front-end
-// package main
-//
-// import (
-// 	"flag"
-// 	"fmt"
-// )
-//
-// // AppName is injected by the Astilectron packager
-// var AppName string
-//
-// // BuiltAt is injected by the Astilectron packager
-// var BuiltAt string
-//
-// // main implements the main runnable of the application
-// func main() {
-// 	// Grab the command-line flags
-// 	debug := flag.Bool("d", false, "Enable debug mode")
-// 	flag.Parse()
-//
-// 	if *debug {
-// 		fmt.Println("RUNNING DEBUG")
-// 	}
-// 	fmt.Println("Running")
-// }
-
-// HACK Testing code below
-//
 package main
 
 import (
-	"github.com/donovansolms/mininghq-miner-manager/src/cmd"
+	"flag"
+	"fmt"
 )
 
-// AppName is injected by the Astilectron bundler
+// AppName is injected by the Astilectron packager
 var AppName string
 
+// BuiltAt is injected by the Astilectron packager
+var BuiltAt string
+
+// main implements the main runnable of the application
 func main() {
-	cmd.AppName = AppName
-	cmd.Asset = Asset
-	cmd.RestoreAssets = RestoreAssets
-	cmd.Execute()
+	// Grab the command-line flags
+	debug := flag.Bool("d", false, "Enable debug mode")
+	flag.Parse()
+
+	if *debug {
+		fmt.Println("RUNNING DEBUG")
+	}
+	fmt.Println("Running")
+
 }
+
+// HACK Testing code below
+//
+// package main
+//
+// import (
+// 	"fmt"
+//
+// 	"github.com/donovansolms/mininghq-miner-manager/src/cmd"
+// )
+//
+// // AppName is injected by the Astilectron bundler
+// var AppName string
+//
+// func main() {
+// 	fmt.Println("Nothing?")
+// 	cmd.AppName = AppName
+// 	cmd.Asset = Asset
+// 	cmd.RestoreAssets = RestoreAssets
+// 	cmd.Execute()
+// }

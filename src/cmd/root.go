@@ -47,6 +47,7 @@ func Execute() {
 	// change this in future, but for now we'll just check if any uninstall
 	// flag or command was passed
 	if len(os.Args) > 1 {
+		fmt.Println(os.Args)
 		for _, arg := range os.Args[1:] {
 			if strings.Contains(strings.ToLower(arg), "uninstall") {
 				mustUninstall = true
