@@ -13,6 +13,16 @@ showing various statistics and information of your local setup.
 
 On first launch, the manager acts as an installer for your rigs.
 
+## Note
+
+You might wonder why we don't have a single binary that accepts different
+flags to install/uninstall/manage the rig. We initially had it working this
+way, except when Windows testing started we found that the command line doesn't
+work for GUI apps. This made it so that we could no longer route commands
+correctly under Windows and decided to break it up into smaller pieces.
+
+We might revisit this in the future, for now it gives a consistent experience.
+
 ## Building
 
 The following should work for Linux, Windows and MacOS.
