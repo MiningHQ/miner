@@ -9,6 +9,8 @@ The main MiningHQ service that manages the user's rig
 This helper tool is installed as a service in Windows and Linux. It runs the
 miner controller that allows you to manage your rigs from your dashboard.
 
+It also implements Unattended updates for updating the miner controller.
+
 ## License
 
 The software is licensed under the MIT license, you can find the
