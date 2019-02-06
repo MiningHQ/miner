@@ -41,3 +41,9 @@ License: MIT
 
 Package: google.golang.org/grpc (github.com/grpc/grpc-go)
 License: Apache-2.0
+
+Package: github.com/kardianos/service
+License: zlib
+
+Package: github.com/ProjectLimitless/go-unattended
+License: Apache License 2.0
