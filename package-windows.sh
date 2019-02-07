@@ -52,7 +52,7 @@ printf "${GREEN}All parts added${NC}\n"
 printf "\n${LIGHTGREEN}Create package${NC}\n\n"
 # cd packages/windows
 # zip MiningHQ-Miner.zip *
-#find . -type f ! -name "*.zip" -exec rm -rf {} \;
-printf "\n${LIGHTGREEN}Removed temporary files${NC}\n\n"
-cd ..
+# find . -type f ! -name "*.zip" -exec rm -rf {} \;
+# printf "\n${LIGHTGREEN}Removed temporary files${NC}\n\n"
+# cd ..
 printf "${GREEN}Package created, available in packages/windows${NC}\n"
