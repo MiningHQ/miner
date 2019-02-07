@@ -8,13 +8,11 @@ build: build_linux ## Build binaries for Windows and Linux
 	make build_windows
 
 build_linux: ## Build the binary for Linux
-	# Build the standalone installer
 	GOOS=linux GOARCH=amd64 go build -o bin/install-service ./src
 
 build_windows: ## Build the binary for Windows
 	# Embed the manifest to request admin rights using https://github.com/akavel/rsrc
 	rsrc -manifest src/install-service.exe.manifest -o bin/manifest.syso
-	# Build the standalone installer
 	GOOS=windows GOARCH=amd64 go build -o bin/install-service.exe ./src
 	rm bin/manifest.syso
 

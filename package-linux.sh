@@ -24,10 +24,10 @@ printf "${YELLOW}Building uninstaller${NC}\n"
 cd uninstaller
 make clean; make build_linux
 cd ..
-printf "${YELLOW}Building GUI${NC}\n"
-cd gui
-make build_linux
-cd ..
+#printf "${YELLOW}Building GUI${NC}\n"
+#cd gui
+#make build_linux
+#cd ..
 printf "${GREEN}Compile completed${NC}\n"
 printf "\n${LIGHTGREEN}Packaging MiningHQ Miner for Linux${NC}\n\n"
 if [ -d "packages/linux" ]; then
@@ -42,13 +42,13 @@ cp miner-service/bin/miner-service packages/linux
 printf "${YELLOW}Added miner service${NC}\n"
 cp uninstaller/bin/uninstall-mininghq packages/linux
 printf "${YELLOW}Added uninstaller${NC}\n"
-cp gui/bin/linux-amd64/'MiningHQ Miner Manager' packages/linux
-printf "${YELLOW}Added GUI${NC}\n"
+#cp gui/bin/linux-amd64/'MiningHQ Miner Manager' packages/linux
+#printf "${YELLOW}Added GUI${NC}\n"
 printf "${GREEN}All parts added${NC}\n"
 printf "\n${LIGHTGREEN}Create package${NC}\n\n"
-cd packages/linux
-tar -zcvf MiningHQ-Miner.tar.gz *
+# cd packages/linux
+# tar -zcvf MiningHQ-Miner.tar.gz *
 # find . -type f ! -name "*.tar.gz" -exec rm -rf {} \;
-printf "\n${LIGHTGREEN}Removed temporary files${NC}\n\n"
+# printf "\n${LIGHTGREEN}Removed temporary files${NC}\n\n"
 cd ..
 printf "${GREEN}Package created, available in packages/linux${NC}\n"
