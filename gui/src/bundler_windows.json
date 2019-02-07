@@ -1,7 +1,6 @@
 {
   "app_name": "MiningHQ Miner Manager",
   "environments": [
-    {"arch": "amd64", "os": "linux"},
     {
       "arch": "amd64",
       "os": "windows",

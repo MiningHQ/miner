@@ -5,19 +5,16 @@
 .PHONY: default build fmt lint run run_race test clean vet docker_build docker_run docker_clean
 
 # Name of the app
-APP_NAME := 'mininghq-uninstaller'
+APP_NAME := 'uninstall-mininghq'
 
-build: ## Build the binary
+build_linux: ## Build the binary for linux
 	go build -o ./bin/${APP_NAME} ./src/*.go
 
 build_windows: ## Build the binary for Windows
 	GOOS=windows GOARCH=amd64 go build -o ./bin/${APP_NAME}.exe ./src/*.go
 
-run: build ## Build and run the binary in CLI mode
-	./bin/'${APP_NAME}'
-
-run_cli:  ## Build and run the binary in CLI mode
-	go run -race ./src/*.go
+run: build_linux ## Build and run the binary in CLI mode
+	./bin/${APP_NAME}
 
 clean: ## Remove compiled binaries from bin/
 	rm -Rf bin/
