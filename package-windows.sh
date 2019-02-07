@@ -8,10 +8,6 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 printf "\n${LIGHTGREEN}Compiling MiningHQ Miner for Windows${NC}\n\n"
-printf "${YELLOW}Building server installer${NC}\n"
-cd cli
-make clean; make build_windows
-cd ..
 printf "${YELLOW}Building service installer${NC}\n"
 cd install-service
 make clean; make build_windows
@@ -38,8 +34,6 @@ if [ -d "packages/windows" ]; then
 fi
 mkdir packages/windows
 mkdir packages/windows/tools
-cp cli/bin/mininghq-server-installer.exe packages/windows/tools
-printf "${YELLOW}Added server installer${NC}\n"
 cp install-service/bin/install-service.exe packages/windows/tools
 printf "${YELLOW}Added service installer${NC}\n"
 cp miner-service/bin/miner-service.exe packages/windows/tools

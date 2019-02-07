@@ -15,6 +15,7 @@
 bin/
 logs/
 bind_*
+*.syso
 
 install-service/install-service
 install-service/install-service.exe

@@ -12,9 +12,9 @@ build_linux: ## Build the binary for Linux
 
 build_windows: ## Build the binary for Windows
 	# Embed the manifest to request admin rights using https://github.com/akavel/rsrc
-	rsrc -manifest src/install-service.exe.manifest -o bin/manifest.syso
+	rsrc -manifest src/install-service.exe.manifest -o src/manifest.syso
 	GOOS=windows GOARCH=amd64 go build -o bin/install-service.exe ./src
-	rm bin/manifest.syso
+	rm src/manifest.syso
 
 clean: ## Remove compiled output
 	rm -Rf bin/

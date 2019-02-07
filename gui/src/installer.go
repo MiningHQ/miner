@@ -570,8 +570,11 @@ Include the following error in your report '%s'
 			}, nil
 		}
 
-		// managerName := filepath.Base(managerBinaryPath)
-		err = os.Rename(managerBinaryPath, filepath.Join(gui.installPath, "MiningHQ Miner Manager"))
+		if strings.ToLower(runtime.GOOS) == Windows {
+			err = os.Rename(managerBinaryPath, filepath.Join(gui.installPath, "MiningHQ Miner Manager.exe"))
+		} else {
+			err = os.Rename(managerBinaryPath, filepath.Join(gui.installPath, "MiningHQ Miner Manager"))
+		}
 		if err != nil {
 
 			return map[string]string{
