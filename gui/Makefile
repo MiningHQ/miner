@@ -5,7 +5,7 @@
 .PHONY: default build fmt lint run run_race test clean vet docker_build docker_run docker_clean
 
 # Name of the app
-APP_NAME := 'MiningHQ\ Miner\ Manager'
+APP_NAME := 'MiningHQ\ Miner\ Installer'
 
 build_linux: ## Build the binary for Linux
 	cd src/; astilectron-bundler -v -c bundler_linux.json

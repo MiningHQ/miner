@@ -24,7 +24,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -37,14 +36,22 @@ import (
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
 	"github.com/donovansolms/mininghq-miner-controller/src/mhq"
 	"github.com/donovansolms/mininghq-miner-manager/helper"
-	"github.com/donovansolms/mininghq-miner-manager/src/embedded"
 	"github.com/donovansolms/mininghq-spec/spec/caps"
 	"github.com/otiai10/copy"
 	"github.com/sirupsen/logrus"
 )
 
-// GUIInstaller implements a graphical installer
-type GUIInstaller struct {
+const (
+	// Windows operating system
+	Windows = "windows"
+	// Linux operating system
+	Linux = "linux"
+	// MacOS operating system
+	MacOS = "darwin"
+)
+
+// Installer implements a graphical installer
+type Installer struct {
 	// window is the main Astilectron window
 	window *astilectron.Window
 	// astilectronOptions holds the Astilectron options
@@ -65,7 +72,6 @@ type GUIInstaller struct {
 	logger *logrus.Entry
 
 	// helper functions
-	helper   helper.Helper
 	debugLog *os.File
 
 	// Rig related information
@@ -81,13 +87,12 @@ func NewInstaller(
 	homeDir string,
 	systemOS string,
 	apiEndpoint string,
-	isDebug bool) (*GUIInstaller, error) {
+	isDebug bool) (*Installer, error) {
 
-	gui := GUIInstaller{
+	gui := Installer{
 		serviceName:        helper.ServiceName,
 		serviceDisplayName: helper.ServiceDisplayName,
 		serviceDescription: helper.ServiceDescription,
-		helper:             helper.Helper{},
 		homeDir:            homeDir,
 		os:                 systemOS,
 		mhqEndpoint:        apiEndpoint,
@@ -216,7 +221,7 @@ func NewInstaller(
 }
 
 // Run the miner!
-func (gui *GUIInstaller) Run() error {
+func (gui *Installer) Run() error {
 	gui.logger.Info("Starting installer")
 	err := bootstrap.Run(gui.astilectronOptions)
 	if err != nil {
@@ -227,7 +232,7 @@ func (gui *GUIInstaller) Run() error {
 }
 
 // handleElectronCommands handles the messages sent by the Electron front-end
-func (gui *GUIInstaller) handleElectronCommands(
+func (gui *Installer) handleElectronCommands(
 	_ *astilectron.Window,
 	command bootstrap.MessageIn) (interface{}, error) {
 
@@ -273,7 +278,7 @@ func (gui *GUIInstaller) handleElectronCommands(
 
 		// Send message to electron we're installing
 
-		avExcludeDirectory, err := gui.helper.CreateInstallDirectories(gui.installPath)
+		avExcludeDirectory, err := helper.CreateInstallDirectories(gui.installPath)
 		if err != nil {
 			return map[string]string{
 				"status": "error",
@@ -334,7 +339,7 @@ from <a href="https://www.mininghq.io/rigs">https://www.mininghq.io/rigs</a>
 			miningKeyPath)
 
 		// Get the mining key for the user
-		miningKey, err := gui.helper.GetMiningKeyFromFile(miningKeyPath)
+		miningKey, err := helper.GetMiningKeyFromFile(miningKeyPath)
 		if err != nil {
 			return map[string]string{
 				"status":  "error",
@@ -426,117 +431,37 @@ Include the following error in your report '%s'
 			"message": "Create config files",
 		})
 
-		// Install the miner and service
-		embeddedFilename := "mininghq-miner"
-		embeddedServiceInstallerFilename := "install-service"
-		if strings.ToLower(runtime.GOOS) == "windows" {
-			embeddedFilename = "mininghq-miner.exe"
-			embeddedServiceInstallerFilename = "install-service.exe"
+		// Copy installation files
+		installFiles := map[string]string{
+			"miner-service":     "miner-service",
+			"service-installer": "install-service",
+			"uninstaller":       "uninstall-mininghq",
 		}
-		embeddedFS := embedded.FS(false)
-		// Extract the miner service
-		embeddedFile, err := embeddedFS.Open("/miner-service/" + embeddedFilename)
-		if err != nil {
-			return map[string]string{
-				"status": "error",
-				"message": fmt.Sprintf(`
+		if strings.ToLower(runtime.GOOS) == Windows {
+			installFiles = map[string]string{
+				"miner-service":     "miner-service.exe",
+				"service-installer": "install-service.exe",
+				"uninstaller":       "uninstall-mininghq.exe",
+			}
+		}
+
+		for _, src := range installFiles {
+			err = helper.CopyFile(filepath.Join("tools", src), filepath.Join(gui.installPath, src))
+			if err != nil {
+				return map[string]string{
+					"status": "error",
+					"message": fmt.Sprintf(`
 <p>
-We were unable to extract the miner from the installer.
+We were unable to install the service files. Please ensure you have write
+permissions to the directory '%s'
 </p>
 <p>
 Include the following error in your report '%s'
 </p>
-				`, err.Error()),
-			}, nil
+								`, gui.installPath, err.Error()),
+				}, nil
+			}
 		}
-
-		installFile, err := os.OpenFile(
-			filepath.Join(gui.installPath, embeddedFilename),
-			os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-		if err != nil {
-			return map[string]string{
-				"status": "error",
-				"message": fmt.Sprintf(`
-<p>
-We were unable to create the miner in the correct location. Please check that
-you have sufficient space on your harddrive.
-</p>
-<p>
-Include the following error in your report '%s'
-</p>
-				`, err.Error()),
-			}, nil
-		}
-
-		_, err = io.Copy(installFile, embeddedFile)
-		if err != nil {
-
-			return map[string]string{
-				"status": "error",
-				"message": fmt.Sprintf(`
-<p>
-We were unable to install the miner to the correct location.
-</p>
-<p>
-Include the following error in your report '%s'
-</p>
-				`, err.Error()),
-			}, nil
-		}
-		installFile.Close()
-		embeddedFile.Close()
-
-		// Extract the service installer
-		embeddedFile, err = embeddedFS.Open("/miner-service/" + embeddedServiceInstallerFilename)
-		if err != nil {
-			return map[string]string{
-				"status": "error",
-				"message": fmt.Sprintf(`
-<p>
-We were unable to extract the service installer from the installer.
-</p>
-<p>
-Include the following error in your report '%s'
-</p>
-				`, err.Error()),
-			}, nil
-		}
-
-		installFile, err = os.OpenFile(
-			filepath.Join(gui.installPath, embeddedServiceInstallerFilename),
-			os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-		if err != nil {
-			return map[string]string{
-				"status": "error",
-				"message": fmt.Sprintf(`
-<p>
-We were unable to create the service installer in the correct location. Please check that
-you have sufficient space on your harddrive.
-</p>
-<p>
-Include the following error in your report '%s'
-</p>
-				`, err.Error()),
-			}, nil
-		}
-
-		_, err = io.Copy(installFile, embeddedFile)
-		if err != nil {
-
-			return map[string]string{
-				"status": "error",
-				"message": fmt.Sprintf(`
-<p>
-We were unable to install the service installer to the correct location.
-</p>
-<p>
-Include the following error in your report '%s'
-</p>
-				`, err.Error()),
-			}, nil
-		}
-		installFile.Close()
-		embeddedFile.Close()
 
 		// Install mininghq-miner as a service
 		// We do this using a separate executable so that only the service install
@@ -545,80 +470,27 @@ Include the following error in your report '%s'
 		// For Windows we embed a manifest file to request admin right
 		var out []byte
 		if strings.ToLower(runtime.GOOS) == "windows" {
-			// Extract the manifest file
-			//
-			// Extract the service installer
-			// 		embeddedFile, err = embeddedFS.Open("/miner-service/" + embeddedServiceInstallerFilename + ".manifest")
-			// 		if err != nil {
-			// 			return map[string]string{
-			// 				"status": "error",
-			// 				"message": fmt.Sprintf(`
-			// <p>
-			// We were unable to extract the service installer from the installer.
-			// </p>
-			// <p>
-			// Include the following error in your report '%s'
-			// </p>
-			// 				`, err.Error()),
-			// 			}, nil
-			// 		}
-			//
-			// 		installFile, err = os.OpenFile(
-			// 			filepath.Join(gui.installPath, embeddedServiceInstallerFilename+".manifest"),
-			// 			os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-			// 		if err != nil {
-			// 			return map[string]string{
-			// 				"status": "error",
-			// 				"message": fmt.Sprintf(`
-			// <p>
-			// We were unable to create the service installer in the correct location. Please check that
-			// you have sufficient space on your harddrive.
-			// </p>
-			// <p>
-			// Include the following error in your report '%s'
-			// </p>
-			// 				`, err.Error()),
-			// 			}, nil
-			// 		}
-			//
-			// 		_, err = io.Copy(installFile, embeddedFile)
-			// 		if err != nil {
-			//
-			// 			return map[string]string{
-			// 				"status": "error",
-			// 				"message": fmt.Sprintf(`
-			// <p>
-			// We were unable to install the service installer to the correct location.
-			// </p>
-			// <p>
-			// Include the following error in your report '%s'
-			// </p>
-			// 				`, err.Error()),
-			// 			}, nil
-			// 		}
-			// 		installFile.Close()
-			// 		embeddedFile.Close()
 
 			out, err = exec.Command(
 				"cmd.exe", "/C",
-				filepath.Join(gui.installPath, embeddedServiceInstallerFilename),
+				filepath.Join(gui.installPath, installFiles["service-installer"]),
 				"-op", "install",
 				"-serviceName", gui.serviceName,
 				"-serviceDisplayName", gui.serviceDisplayName,
 				"-serviceDescription", gui.serviceDescription,
 				"-installedPath", gui.installPath,
-				"-serviceFilename", embeddedFilename,
+				"-serviceFilename", installFiles["miner-service"],
 			).CombinedOutput()
 		} else {
 			out, err = exec.Command(
 				"pkexec",
-				filepath.Join(gui.installPath, embeddedServiceInstallerFilename),
+				filepath.Join(gui.installPath, installFiles["service-installer"]),
 				"-op", "install",
 				"-serviceName", gui.serviceName,
 				"-serviceDisplayName", gui.serviceDisplayName,
 				"-serviceDescription", gui.serviceDescription,
 				"-installedPath", gui.installPath,
-				"-serviceFilename", embeddedFilename,
+				"-serviceFilename", installFiles["miner-service"],
 			).CombinedOutput()
 		}
 
@@ -698,8 +570,8 @@ Include the following error in your report '%s'
 			}, nil
 		}
 
-		managerName := filepath.Base(managerBinaryPath)
-		err = os.Rename(managerBinaryPath, filepath.Join(gui.installPath, managerName))
+		// managerName := filepath.Base(managerBinaryPath)
+		err = os.Rename(managerBinaryPath, filepath.Join(gui.installPath, "MiningHQ Miner Manager"))
 		if err != nil {
 
 			return map[string]string{
@@ -729,24 +601,24 @@ Include the following error in your report '%s'
 		if strings.ToLower(runtime.GOOS) == "windows" {
 			out, err = exec.Command(
 				"cmd.exe", "/C",
-				filepath.Join(gui.installPath, embeddedServiceInstallerFilename),
+				filepath.Join(gui.installPath, installFiles["service-installer"]),
 				"-op", "start",
 				"-serviceName", gui.serviceName,
 				"-serviceDisplayName", gui.serviceDisplayName,
 				"-serviceDescription", gui.serviceDescription,
 				"-installedPath", gui.installPath,
-				"-serviceFilename", embeddedFilename,
+				"-serviceFilename", installFiles["miner-service"],
 			).CombinedOutput()
 		} else {
 			out, err = exec.Command(
 				"pkexec",
-				filepath.Join(gui.installPath, embeddedServiceInstallerFilename),
+				filepath.Join(gui.installPath, installFiles["service-installer"]),
 				"-op", "start",
 				"-serviceName", gui.serviceName,
 				"-serviceDisplayName", gui.serviceDisplayName,
 				"-serviceDescription", gui.serviceDescription,
 				"-installedPath", gui.installPath,
-				"-serviceFilename", embeddedFilename,
+				"-serviceFilename", installFiles["miner-service"],
 			).CombinedOutput()
 		}
 		if err != nil {
@@ -785,25 +657,12 @@ Include the following error in your report '%s', %s
 		}
 		return username, nil
 
-		// Cancel the installation
-	case "Cancel":
-		// err := gui.stopMiner()
-		// if err != nil {
-		// 	// _ = gui.sendElectronCommand("fatal_error", ElectronMessage{
-		// 	// 	Data: fmt.Sprintf("Unable to stop miner backend."+
-		// 	// 		"Please close the miner and open it again."+
-		// 	// 		"<br/>The error was '%s'", err),
-		// 	// })
-		// 	// // Give the UI some time to display the message
-		// 	// time.Sleep(time.Second * 15)
-		// 	// gui.logger.Fatalf("Unable to reconfigure miner: '%s'", err)
-		// }
 	}
 	return nil, fmt.Errorf("'%s' is an unknown command", command.Name)
 }
 
 // sendElectronCommand sends the given data to Electron under the command name
-func (gui *GUIInstaller) sendElectronCommand(
+func (gui *Installer) sendElectronCommand(
 	name string,
 	data map[string]string) error {
 	dataBytes, err := json.Marshal(&data)

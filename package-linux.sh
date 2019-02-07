@@ -24,31 +24,35 @@ printf "${YELLOW}Building uninstaller${NC}\n"
 cd uninstaller
 make clean; make build_linux
 cd ..
-#printf "${YELLOW}Building GUI${NC}\n"
-#cd gui
-#make build_linux
-#cd ..
+printf "${YELLOW}Building GUI${NC}\n"
+cd gui
+make build_linux
+cd ..
 printf "${GREEN}Compile completed${NC}\n"
 printf "\n${LIGHTGREEN}Packaging MiningHQ Miner for Linux${NC}\n\n"
+if [ ! -d "packages" ]; then
+  mkdir packages
+fi
 if [ -d "packages/linux" ]; then
   rm -Rf packages/linux
 fi
 mkdir packages/linux
-cp cli/bin/mininghq-server-installer packages/linux
+mkdir packages/linux/tools
+cp cli/bin/mininghq-server-installer packages/linux/tools
 printf "${YELLOW}Added server installer${NC}\n"
-cp install-service/bin/install-service packages/linux
+cp install-service/bin/install-service packages/linux/tools
 printf "${YELLOW}Added service installer${NC}\n"
-cp miner-service/bin/miner-service packages/linux
+cp miner-service/bin/miner-service packages/linux/tools
 printf "${YELLOW}Added miner service${NC}\n"
-cp uninstaller/bin/uninstall-mininghq packages/linux
+cp uninstaller/bin/uninstall-mininghq packages/linux/tools
 printf "${YELLOW}Added uninstaller${NC}\n"
-#cp gui/bin/linux-amd64/'MiningHQ Miner Manager' packages/linux
-#printf "${YELLOW}Added GUI${NC}\n"
+cp gui/bin/linux-amd64/'MiningHQ Miner Manager' packages/linux/'MiningHQ Miner Installer'
+printf "${YELLOW}Added GUI${NC}\n"
 printf "${GREEN}All parts added${NC}\n"
 printf "\n${LIGHTGREEN}Create package${NC}\n\n"
 # cd packages/linux
 # tar -zcvf MiningHQ-Miner.tar.gz *
 # find . -type f ! -name "*.tar.gz" -exec rm -rf {} \;
 # printf "\n${LIGHTGREEN}Removed temporary files${NC}\n\n"
-cd ..
+# cd ..
 printf "${GREEN}Package created, available in packages/linux${NC}\n"

@@ -38,17 +38,8 @@ import (
 	input "github.com/tcnksm/go-input"
 )
 
-const (
-	// Windows operating system
-	Windows = "windows"
-	// Linux operating system
-	Linux = "linux"
-	// MacOS operating system
-	MacOS = "darwin"
-)
-
-// CLIInstaller install the Miner Manager from the terminal
-type CLIInstaller struct {
+// Installer install the Miner Manager from the terminal
+type Installer struct {
 	// homeDir is the user's home directory
 	homeDir string
 	// os is the system operating system
@@ -61,8 +52,17 @@ type CLIInstaller struct {
 	serviceDescription string
 }
 
+const (
+	// Windows operating system
+	Windows = "windows"
+	// Linux operating system
+	Linux = "linux"
+	// MacOS operating system
+	MacOS = "darwin"
+)
+
 // New creates a new installer instance
-func NewInstaller(homeDir string, os string, mhqEndpoint string) (*CLIInstaller, error) {
+func NewInstaller(homeDir string, os string, mhqEndpoint string) (*Installer, error) {
 	if strings.TrimSpace(homeDir) == "" {
 		return nil, errors.New("A home directory must be set")
 	}
@@ -73,7 +73,7 @@ func NewInstaller(homeDir string, os string, mhqEndpoint string) (*CLIInstaller,
 		return nil, fmt.Errorf("OS may only be %s, %s or %s", Windows, MacOS, Linux)
 	}
 
-	installer := CLIInstaller{
+	installer := Installer{
 		homeDir:            homeDir,
 		os:                 os,
 		mhqEndpoint:        mhqEndpoint,
@@ -86,7 +86,7 @@ func NewInstaller(homeDir string, os string, mhqEndpoint string) (*CLIInstaller,
 
 // Install the miner manager using a synchronous process,
 // no feedback is given to the caller via channels
-func (installer *CLIInstaller) Install() error {
+func (installer *Installer) Install() error {
 
 	// Note: This will not be the prettiest code you'll ever see :)
 	// If anyone has some good advice in controlling the output for this process,
@@ -388,7 +388,7 @@ We were unable to create the new rig files for your installation.
 	}
 
 	for _, src := range installFiles {
-		err = helper.CopyFile(src, filepath.Join(installDir, src))
+		err = helper.CopyFile(filepath.Join("tools", src), filepath.Join(installDir, src))
 		if err != nil {
 			color.HiRed("FAIL")
 			fmt.Printf(`

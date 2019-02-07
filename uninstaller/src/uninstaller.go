@@ -45,8 +45,8 @@ const (
 	MacOS = "darwin"
 )
 
-// CLIInstaller install the Miner Manager from the terminal
-type CLIInstaller struct {
+// Installer install the Miner Manager from the terminal
+type Installer struct {
 	// homeDir is the user's home directory
 	homeDir string
 	// os is the system operating system
@@ -60,7 +60,7 @@ type CLIInstaller struct {
 }
 
 // NewInstaller creates a new installer instance
-func NewInstaller(homeDir string, os string, mhqEndpoint string) (*CLIInstaller, error) {
+func NewInstaller(homeDir string, os string, mhqEndpoint string) (*Installer, error) {
 	if strings.TrimSpace(homeDir) == "" {
 		return nil, errors.New("A home directory must be set")
 	}
@@ -71,7 +71,7 @@ func NewInstaller(homeDir string, os string, mhqEndpoint string) (*CLIInstaller,
 		return nil, fmt.Errorf("OS may only be %s, %s or %s", Windows, MacOS, Linux)
 	}
 
-	installer := CLIInstaller{
+	installer := Installer{
 		homeDir:            homeDir,
 		os:                 os,
 		mhqEndpoint:        mhqEndpoint,
@@ -84,7 +84,7 @@ func NewInstaller(homeDir string, os string, mhqEndpoint string) (*CLIInstaller,
 
 // Uninstall uninstalls the miner manager and services using
 // a synchronous process
-func (installer *CLIInstaller) Uninstall(
+func (installer *Installer) Uninstall(
 	installedPath string,
 	installedPathFilepath string) error {
 
