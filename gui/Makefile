@@ -5,7 +5,7 @@
 .PHONY: default build fmt lint run run_race test clean vet docker_build docker_run docker_clean
 
 # Name of the app
-APP_NAME := 'MiningHQ\ Miner\ Installer'
+APP_NAME := 'MiningHQ\ Miner\ Manager'
 
 build_linux: ## Build the binary for Linux
 	cd src/; astilectron-bundler -v -c bundler_linux.json
@@ -13,7 +13,7 @@ build_linux: ## Build the binary for Linux
 build_windows: ## Build the binary for Windows
 	cd src/; astilectron-bundler -v -c bundler_windows.json
 
-run: build ## Build and run the binary in GUI mode
+run: build_linux ## Build and run the binary in GUI mode for Linux
 	./bin/linux-amd64/'${APP_NAME}'
 
 clean: ## Remove compiled binaries from bin/

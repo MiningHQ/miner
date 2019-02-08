@@ -8,7 +8,9 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/donovansolms/mininghq-rpcproto/rpcproto"
 	homedir "github.com/mitchellh/go-homedir"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -30,6 +32,35 @@ func main() {
 
 	if isInstalled() {
 		// Installed, run manager
+		conn, err := grpc.Dial("localhost:64630", grpc.WithInsecure())
+		if err != nil {
+			panic(err)
+		}
+		defer conn.Close()
+		client := rpcproto.NewManagerServiceClient(conn)
+
+		// Start the Electron interface
+		// AppName, Asset and RestoreAssets are injected by the bundler
+		gui, err := NewManager(
+			client,
+			AppName,
+			Asset,
+			RestoreAssets,
+			false,
+		)
+		if err != nil {
+			// Setting the output to stdout so the user can see the error
+			log.SetOutput(os.Stdout)
+			log.Fatalf("Unable to set up miner: %s", err)
+		}
+
+		err = gui.Run()
+		if err != nil {
+			// Setting the output to stdout so the user can see the error
+			log.SetOutput(os.Stdout)
+			log.Fatalf("Unable to run miner: %s", err)
+		}
+		return
 	}
 
 	// Not installed, run installer

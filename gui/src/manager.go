@@ -38,8 +38,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// GUIManager implements the manager GUI
-type GUIManager struct {
+// Manager implements the manager GUI
+type Manager struct {
 	// window is the main Astilectron window
 	window *astilectron.Window
 	// astilectronOptions holds the Astilectron options
@@ -57,9 +57,9 @@ func NewManager(
 	appName string,
 	asset bootstrap.Asset,
 	restoreAssets bootstrap.RestoreAssets,
-	isDebug bool) (*GUIManager, error) {
+	isDebug bool) (*Manager, error) {
 
-	gui := GUIManager{
+	gui := Manager{
 		managerClient: client,
 	}
 
@@ -184,7 +184,7 @@ func NewManager(
 }
 
 // Run the miner!
-func (gui *GUIManager) Run() error {
+func (gui *Manager) Run() error {
 	gui.logger.Info("Starting manager")
 
 	err := bootstrap.Run(gui.astilectronOptions)
@@ -197,7 +197,7 @@ func (gui *GUIManager) Run() error {
 
 // updateLoop is executed every X seconds, it fetches the latest state, stats
 // and logs from the miner controller and sends it to the Electron.
-func (gui *GUIManager) updateLoop() {
+func (gui *Manager) updateLoop() {
 
 	var managerUpdate rpcproto.ManagerUpdate
 
@@ -266,7 +266,7 @@ func (gui *GUIManager) updateLoop() {
 }
 
 // handleElectronCommands handles the messages sent by the Electron front-end
-func (gui *GUIManager) handleElectronCommands(
+func (gui *Manager) handleElectronCommands(
 	_ *astilectron.Window,
 	command bootstrap.MessageIn) (interface{}, error) {
 
@@ -325,7 +325,7 @@ Unable to query miner controller, please ensure the MiningHQ Miner service is ru
 }
 
 // sendElectronCommand sends the given data to Electron under the command name
-func (gui *GUIManager) sendElectronCommand(
+func (gui *Manager) sendElectronCommand(
 	name string,
 	data interface{}) error {
 	dataBytes, err := json.Marshal(&data)

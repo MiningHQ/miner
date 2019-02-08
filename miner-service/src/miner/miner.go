@@ -117,9 +117,10 @@ func (miner *Miner) Start(s service.Service) error {
 	miner.updateWrapper, err = unattended.New(
 		"TEST001", // TODO clientID
 		unattended.Target{ // target
-			VersionsPath:          filepath.Join(basePath, "miner-controller"),
-			AppID:                 fmt.Sprintf("miner-controller-%s", strings.ToLower(runtime.GOOS)),
-			UpdateEndpoint:        "https://unattended.mininighq.io",
+			VersionsPath: filepath.Join(basePath, "miner-controller"),
+			AppID:        fmt.Sprintf("miner-controller-%s", strings.ToLower(runtime.GOOS)),
+			//UpdateEndpoint:        "https://unattended.mininighq.io",
+			UpdateEndpoint:        "http://unattended-old.local",
 			UpdateChannel:         "stable",
 			ApplicationName:       "mininghq-miner-controller",
 			ApplicationParameters: []string{},

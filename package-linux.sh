@@ -14,6 +14,9 @@ make clean; make build_linux
 cd ..
 printf "${YELLOW}Building service installer${NC}\n"
 cd install-service
+if [ -e "src/manifest.syso" ]; then
+    rm src/manifest.syso
+fi
 make clean; make build_linux
 cd ..
 printf "${YELLOW}Building miner service${NC}\n"
