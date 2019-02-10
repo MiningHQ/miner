@@ -25,9 +25,9 @@ import (
 	"flag"
 	"log"
 
-	"github.com/donovansolms/mininghq-miner-manager/helper"
-	"github.com/donovansolms/mininghq-miner-manager/miner-service/src/miner"
 	"github.com/kardianos/service"
+	"github.com/mininghq/miner/helper"
+	"github.com/mininghq/miner/miner-service/src/miner"
 )
 
 var logger service.Logger

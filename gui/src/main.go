@@ -29,7 +29,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/donovansolms/mininghq-rpcproto/rpcproto"
+	"github.com/mininghq/rpcproto/rpcproto"
 	homedir "github.com/mitchellh/go-homedir"
 	"google.golang.org/grpc"
 )

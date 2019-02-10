@@ -34,9 +34,9 @@ import (
 
 	astilectron "github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
-	"github.com/donovansolms/mininghq-miner-controller/src/mhq"
-	"github.com/donovansolms/mininghq-miner-manager/helper"
 	"github.com/donovansolms/mininghq-spec/spec/caps"
+	"github.com/mininghq/miner-controller/src/mhq"
+	"github.com/mininghq/miner/helper"
 	"github.com/otiai10/copy"
 	"github.com/sirupsen/logrus"
 )

@@ -31,9 +31,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/donovansolms/mininghq-miner-controller/src/mhq"
-	"github.com/donovansolms/mininghq-miner-manager/helper"
 	"github.com/fatih/color"
+	"github.com/mininghq/miner-controller/src/mhq"
+	"github.com/mininghq/miner/helper"
 )
 
 const (

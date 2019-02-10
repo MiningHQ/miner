@@ -30,10 +30,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/donovansolms/mininghq-miner-controller/src/mhq"
-	"github.com/donovansolms/mininghq-miner-manager/helper"
 	"github.com/donovansolms/mininghq-spec/spec/caps"
 	"github.com/fatih/color"
+	"github.com/mininghq/miner-controller/src/mhq"
+	"github.com/mininghq/miner/helper"
 	"github.com/otiai10/copy"
 	input "github.com/tcnksm/go-input"
 )

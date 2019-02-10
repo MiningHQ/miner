@@ -34,7 +34,7 @@ import (
 	astilectron "github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
 	"github.com/buildkite/terminal"
-	"github.com/donovansolms/mininghq-rpcproto/rpcproto"
+	"github.com/mininghq/rpcproto/rpcproto"
 	"github.com/sirupsen/logrus"
 )
 
