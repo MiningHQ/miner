@@ -64,7 +64,7 @@ func (miner *Miner) run() error {
 		return err
 	}
 
-	miner.log.Infof("I'm running %v.", service.Platform())
+	miner.log.Infof("Running miner service '%v'.", service.Platform())
 	ticker := time.NewTicker(2 * time.Second)
 	for {
 		select {
@@ -117,10 +117,10 @@ func (miner *Miner) Start(s service.Service) error {
 	miner.updateWrapper, err = unattended.New(
 		"TEST001", // TODO clientID
 		unattended.Target{ // target
-			VersionsPath: filepath.Join(basePath, "miner-controller"),
-			AppID:        fmt.Sprintf("miner-controller-%s", strings.ToLower(runtime.GOOS)),
-			//UpdateEndpoint:        "https://unattended.mininighq.io",
-			UpdateEndpoint:        "http://unattended-old.local",
+			VersionsPath:   filepath.Join(basePath, "miner-controller"),
+			AppID:          fmt.Sprintf("miner-controller-%s", strings.ToLower(runtime.GOOS)),
+			UpdateEndpoint: "https://unattended.mininighq.io",
+			//UpdateEndpoint:        "https://unattended-old.local",
 			UpdateChannel:         "stable",
 			ApplicationName:       "mininghq-miner-controller",
 			ApplicationParameters: []string{},
@@ -152,7 +152,7 @@ func (miner *Miner) Start(s service.Service) error {
 // Stop signals to the OS service manager the given service should stop.
 func (miner *Miner) Stop(s service.Service) error {
 	// Any work in Stop should be quick, usually a few seconds at most.
-	miner.log.Info("I'm Stopping!")
+	miner.log.Info("Stopping miner service")
 	close(miner.exit)
 	// Stop the miner controller when the service stops
 	return miner.updateWrapper.Stop()

@@ -171,7 +171,7 @@ required services, please verify the installation details below
 		color.HiRed("***************************************")
 		color.HiYellow(`
 Something wrong? If so, please let us know by getting in contact
-via our help channels listed at https://www.mininghq.io/help
+via our help channels listed at https://www.mininghq.io/connect
 `)
 		os.Exit(0)
 	}
@@ -252,7 +252,7 @@ You can follow the following instructions on how to exclude the directory: %s
 		color.HiRed("****************************************")
 		color.HiYellow(`
 Something wrong? If so, please let us know by getting in contact
-via our help channels listed at https://www.mininghq.io/help
+via our help channels listed at https://www.mininghq.io/connect
 `)
 		os.Exit(0)
 	}
@@ -267,7 +267,7 @@ have sufficient permissions to check installed hardware on this system.
 
 If you are sure you have the permissions, please contact support to resolve
 the issue. Support can be contacted via our help channels listed at
-https://www.mininghq.io/help
+https://www.mininghq.io/connect
 `)
 		fmt.Printf(color.HiRedString(
 			"Include the following error in your report '%s'"), err.Error())
@@ -327,7 +327,7 @@ https://www.mininghq.io/user/settings
 
 If you are sure everything is in order, please contact support to resolve
 the issue. Support can be contacted via our help channels listed at
-https://www.mininghq.io/help
+https://www.mininghq.io/connect
 `,
 			miningKeyPath)
 		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
@@ -503,13 +503,6 @@ Please ensure you have the correct permissions to write to your home directory.
 Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually. Reason: %s, %s
 		`, err.Error(), out)
 	}
-
-	// 	err = svc.Start() // TODO: Start doesn't start it, problems
-	// 	if err != nil {
-	// 		fmt.Printf(`
-	// Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually.
-	// `)
-	// 	}
 
 	fmt.Printf(`
 

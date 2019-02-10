@@ -25,6 +25,7 @@ import (
 	"flag"
 	"log"
 
+	"github.com/donovansolms/mininghq-miner-manager/helper"
 	"github.com/donovansolms/mininghq-miner-manager/miner-service/src/miner"
 	"github.com/kardianos/service"
 )
@@ -41,9 +42,9 @@ func main() {
 	flag.Parse()
 
 	serviceConfig := &service.Config{
-		Name:        "mininghq-miner",
-		DisplayName: "MiningHQ Miner",
-		Description: "The MiningHQ.io Miner service for controlling mining with this rig",
+		Name:        helper.ServiceName,
+		DisplayName: helper.ServiceDisplayName,
+		Description: helper.ServiceDescription,
 	}
 
 	// Set up the new miner

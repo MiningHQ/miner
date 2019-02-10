@@ -33,11 +33,11 @@ import (
 
 const (
 	// ServiceName for the service
-	ServiceName = "GoServiceExampleLogging"
+	ServiceName = "mininghq-miner"
 	// ServiceDisplayName for the service
-	ServiceDisplayName = "Go Service Example for Logging"
+	ServiceDisplayName = "MiningHQ Miner"
 	// ServiceDescription for the service
-	ServiceDescription = "This is an example Go service that outputs log messages."
+	ServiceDescription = "The MiningHQ.io Miner service for controlling mining with this rig"
 )
 
 // CreateInstallDirectories creates the directories needed for installation

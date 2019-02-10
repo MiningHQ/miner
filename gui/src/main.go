@@ -1,3 +1,24 @@
+/*
+  MiningHQ Miner Manager - The MiningHQ Miner Manager GUI
+  https://mininghq.io
+
+	Copyright (C) 2018  Donovan Solms     <https://github.com/donovansolms>
+                                        <https://github.com/mininghq>
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 package main
 
 import (
@@ -16,7 +37,7 @@ import (
 const (
 	// apiEndpoint is the MiningHQ API endpoint. Defined as a constant since
 	// we don't ship any config files
-	apiEndpoint = "http://mininghq.local/api/v1"
+	apiEndpoint = "https://www.mininghq.io/api/v1"
 )
 
 // AppName is injected by the Astilectron packager
@@ -98,10 +119,10 @@ func isInstalled() bool {
 	// If the path exists in .mhqpath then the services are installed
 	homeDir, err := homedir.Dir()
 	if err != nil {
-		fmt.Printf(
-			`Unable to find your home directory: %s\n
+		fmt.Printf(`
+Unable to find your home directory: %s\n
 
-Please contact our support via our help channels listed at https://www.mininghq.io/help
+Please contact our support via our help channels listed at https://www.mininghq.io/connect
 `, err)
 		os.Exit(1)
 	}

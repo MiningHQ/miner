@@ -316,7 +316,7 @@ have sufficient permissions to check installed hardware on this system.
 <p>
 If you are sure you have the permissions, please contact support to resolve
 the issue. Support can be contacted via our help channels listed at
-https://www.mininghq.io/help
+https://www.mininghq.io/connect
 </p>
 <p>
 Include the following error in your report '%s'"), err.Error())
@@ -374,7 +374,7 @@ https://www.mininghq.io/user/settings
 <p>
 If you are sure everything is in order, please contact support to resolve
 the issue. Support can be contacted via our help channels listed at
-<a href="https://www.mininghq.io/help">https://www.mininghq.io/help</a>
+<a href="https://www.mininghq.io/connect">https://www.mininghq.io/connect</a>
 </p>
 <p>
 Include the following error in your report '%s'
