@@ -65,11 +65,11 @@ func (miner *Miner) run() error {
 	}
 
 	miner.log.Infof("Running miner service '%v'.", service.Platform())
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(time.Hour)
 	for {
 		select {
 		case tm := <-ticker.C:
-			miner.log.Infof("Still running at %v...", tm)
+			miner.log.Infof("Running at %v...", tm)
 		case <-miner.exit:
 			ticker.Stop()
 			return nil
@@ -119,7 +119,7 @@ func (miner *Miner) Start(s service.Service) error {
 		unattended.Target{ // target
 			VersionsPath:   filepath.Join(basePath, "miner-controller"),
 			AppID:          fmt.Sprintf("miner-controller-%s", strings.ToLower(runtime.GOOS)),
-			UpdateEndpoint: "https://unattended.mininighq.io",
+			UpdateEndpoint: "https://unattended.mininghq.io",
 			//UpdateEndpoint:        "https://unattended-old.local",
 			UpdateChannel:         "stable",
 			ApplicationName:       "mininghq-miner-controller",

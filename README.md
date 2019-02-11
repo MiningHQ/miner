@@ -1,6 +1,8 @@
-# MiningHQ Miner Manager
+### MiningHQ
 
-The MiningHQ Miner manager GUI
+# Miner
+
+The MiningHQ Miner installer and manager
 
 ## About
 
@@ -8,7 +10,7 @@ The MiningHQ Miner Manager is a graphical application for interacting
 with the miner installed on your local machine.
 
 It interacts with the installed
-[Miner Controller](https://github.com/donovansolms/miner-controller) for
+[Miner Controller](https://github.com/mininghq/miner-controller) for
 showing various statistics and information of your local setup.
 
 On first launch, the manager acts as an installer for your rigs.
