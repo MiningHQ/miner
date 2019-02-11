@@ -122,7 +122,7 @@ func (miner *Miner) Start(s service.Service) error {
 			UpdateEndpoint: "https://unattended.mininghq.io",
 			//UpdateEndpoint:        "https://unattended-old.local",
 			UpdateChannel:         "stable",
-			ApplicationName:       "mininghq-miner-controller",
+			ApplicationName:       "miner-controller",
 			ApplicationParameters: []string{},
 		},
 		time.Hour, // UpdateCheckInterval
