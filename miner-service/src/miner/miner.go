@@ -78,12 +78,24 @@ func (miner *Miner) run() error {
 }
 
 // Start signals to the OS service manager the given service should start.
+// Start should not block. Do the actual work async.
 func (miner *Miner) Start(s service.Service) error {
 	if service.Interactive() {
 		miner.log.Info("Running in terminal.")
 	} else {
 		miner.log.Info("Running under service manager.")
 	}
+
+	// Start needs to be a quick operation, otherwise the OS will think something
+	// went wrong in the startup, offload to a goroutine ASAP
+	go miner.runAsync()
+
+	miner.log.Info("Returning to OS manager")
+	return nil
+}
+
+// runAsync starts the miner download and runner
+func (miner *Miner) runAsync() {
 	miner.exit = make(chan struct{})
 
 	// Set up unattended updates
@@ -130,32 +142,33 @@ func (miner *Miner) Start(s service.Service) error {
 	)
 	if err != nil {
 		miner.log.Errorf("Unable to create Unattended update manager: %s", err)
-		return err
+		// If unattended can't be created, it's a real problem
+		panic(err)
 	}
 
 	// During construction we check for any updates as well, this has the
 	// side effect that *if* the software isn't available, it will be downloaded
 	hasUpdate, err := miner.updateWrapper.ApplyUpdates()
 	if err != nil {
+		// If unattended updates can't be applied, it's a real problem
 		miner.log.Errorf("Unable to apply controller updates: %s", err)
-		return err
+		panic(err)
 	}
 	if hasUpdate == false {
 		miner.log.Infof("No updates available for miner-controller")
 	}
 
-	// Start should not block. Do the actual work async.
-	go miner.run()
-	return nil
+	miner.run()
 }
 
 // Stop signals to the OS service manager the given service should stop.
 func (miner *Miner) Stop(s service.Service) error {
 	// Any work in Stop should be quick, usually a few seconds at most.
 	miner.log.Info("Stopping miner service")
+	miner.updateWrapper.Stop()
 	close(miner.exit)
 	// Stop the miner controller when the service stops
-	return miner.updateWrapper.Stop()
+	return nil
 }
 
 // SetLogger sets the logger for the service

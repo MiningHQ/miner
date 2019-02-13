@@ -463,6 +463,22 @@ Include the following error in your report '%s'
 			}
 		}
 
+		currentUser, err := user.Current()
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+We were unable to determine the current user. This prevents MiningHQ from
+installing on your rig. Please contact support.
+</p>
+<p>
+Include the following error in your report '%s'
+</p>
+							`, err.Error()),
+			}, nil
+		}
+
 		// Install mininghq-miner as a service
 		// We do this using a separate executable so that only the service install
 		// requires Administrator/sudo rights and not the entire installer
@@ -480,6 +496,7 @@ Include the following error in your report '%s'
 				"-serviceDescription", gui.serviceDescription,
 				"-installedPath", gui.installPath,
 				"-serviceFilename", installFiles["miner-service"],
+				"-username", currentUser.Username,
 			).CombinedOutput()
 		} else {
 			out, err = exec.Command(
@@ -491,6 +508,7 @@ Include the following error in your report '%s'
 				"-serviceDescription", gui.serviceDescription,
 				"-installedPath", gui.installPath,
 				"-serviceFilename", installFiles["miner-service"],
+				"-username", currentUser.Username,
 			).CombinedOutput()
 		}
 
@@ -611,6 +629,7 @@ Include the following error in your report '%s'
 				"-serviceDescription", gui.serviceDescription,
 				"-installedPath", gui.installPath,
 				"-serviceFilename", installFiles["miner-service"],
+				"-username", currentUser.Username,
 			).CombinedOutput()
 		} else {
 			out, err = exec.Command(
@@ -622,6 +641,7 @@ Include the following error in your report '%s'
 				"-serviceDescription", gui.serviceDescription,
 				"-installedPath", gui.installPath,
 				"-serviceFilename", installFiles["miner-service"],
+				"-username", currentUser.Username,
 			).CombinedOutput()
 		}
 		if err != nil {

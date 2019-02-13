@@ -41,6 +41,7 @@ func main() {
 	var serviceDescription string
 	var installedPath string
 	var serviceFilename string
+	var runAsUser string
 
 	flag.StringVar(&operation, "op", "", "The operation to perform")
 	flag.StringVar(&serviceName, "serviceName", "", "The serviceName for the service")
@@ -48,6 +49,7 @@ func main() {
 	flag.StringVar(&serviceDescription, "serviceDescription", "", "The serviceDescription for the service")
 	flag.StringVar(&installedPath, "installedPath", "", "The installedPath for the service")
 	flag.StringVar(&serviceFilename, "serviceFilename", "", "The serviceFilename for the service")
+	flag.StringVar(&runAsUser, "username", "", "The username to execute the service as")
 
 	flag.Parse()
 
@@ -56,6 +58,7 @@ func main() {
 		DisplayName:      serviceDisplayName,
 		Description:      serviceDescription,
 		WorkingDirectory: installedPath,
+		UserName:         runAsUser,
 		Executable:       filepath.Join(installedPath, serviceFilename),
 	}
 	svc, err := service.New(nil, serviceConfig)
