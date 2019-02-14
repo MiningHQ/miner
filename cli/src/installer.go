@@ -27,6 +27,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -403,6 +404,20 @@ permissions to the directory '%s'
 		}
 	}
 
+	currentUser, err := user.Current()
+	if err != nil {
+		color.HiRed("FAIL")
+		fmt.Printf(`
+We were unable to determine the current user. This prevents MiningHQ from
+installing on your rig. Please contact support. '%s'
+	`, err.Error())
+		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+		os.Exit(1)
+	}
+
 	// Install mininghq-miner as a service
 	// We do this using a separate executable so that only the service install
 	// requires Administrator/sudo rights and not the entire installer
@@ -415,6 +430,7 @@ permissions to the directory '%s'
 		"-serviceDescription", installer.serviceDescription,
 		"-installedPath", installDir,
 		"-serviceFilename", installFiles["miner-service"],
+		"-username", currentUser.Username,
 	).CombinedOutput()
 	if err != nil {
 		color.HiRed("FAIL")

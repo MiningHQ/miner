@@ -58,8 +58,8 @@ func main() {
 		DisplayName:      serviceDisplayName,
 		Description:      serviceDescription,
 		WorkingDirectory: installedPath,
-		UserName:         runAsUser,
-		Executable:       filepath.Join(installedPath, serviceFilename),
+		//UserName:         runAsUser, // username wasn't the issue, on Windows this fails, needs more work
+		Executable: filepath.Join(installedPath, serviceFilename),
 	}
 	svc, err := service.New(nil, serviceConfig)
 	if err != nil {

@@ -221,6 +221,7 @@ https://www.mininghq.io/help
 		// We do this using a separate executable so that only the service uninstall
 		// requires Administrator/sudo rights and not the entire installer
 		out, err = exec.Command(
+			"cmd.exe", "/C",
 			"sc.exe", "delete",
 			installer.serviceName,
 		).CombinedOutput()
