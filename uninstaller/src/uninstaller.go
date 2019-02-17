@@ -26,11 +26,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 
+	"github.com/ProtonMail/go-autostart"
 	"github.com/fatih/color"
 	"github.com/mininghq/miner-controller/src/mhq"
 	"github.com/mininghq/miner/helper"
@@ -208,37 +207,49 @@ https://www.mininghq.io/help
 	// Remove the service
 	fmt.Print("Removing the MiningHQ Miner service\n")
 
-	serviceFilename := "mininghq-miner"
-	serviceInstallerFilename := "install-service"
-	if strings.ToLower(runtime.GOOS) == "windows" {
-		serviceFilename = "mininghq-miner.exe"
-		serviceInstallerFilename = "install-service.exe"
-	}
+	// NOTE We no longer run as a service
+	// serviceFilename := "mininghq-miner"
+	// serviceInstallerFilename := "install-service"
+	// if strings.ToLower(runtime.GOOS) == "windows" {
+	// 	serviceFilename = "mininghq-miner.exe"
+	// 	serviceInstallerFilename = "install-service.exe"
+	// }
+	//
+	// var out []byte
+	// if strings.ToLower(runtime.GOOS) == "windows" {
+	// 	// Uninstall mininghq-miner as a service
+	// 	// We do this using a separate executable so that only the service uninstall
+	// 	// requires Administrator/sudo rights and not the entire installer
+	// 	out, err = exec.Command(
+	// 		"cmd.exe", "/C",
+	// 		"sc.exe", "delete",
+	// 		installer.serviceName,
+	// 	).CombinedOutput()
+	// } else {
+	// 	// Uninstall mininghq-miner as a service
+	// 	// We do this using a separate executable so that only the service uninstall
+	// 	// requires Administrator/sudo rights and not the entire installer
+	// 	out, err = exec.Command(
+	// 		"sudo",
+	// 		filepath.Join(installedPath, serviceInstallerFilename),
+	// 		"-op", "uninstall",
+	// 		"-serviceName", installer.serviceName,
+	// 		"-serviceDisplayName", installer.serviceDisplayName,
+	// 		"-serviceDescription", installer.serviceDescription,
+	// 		"-installedPath", installedPath,
+	// 		"-serviceFilename", serviceFilename,
+	// 	).CombinedOutput()
+	// }
+	// END NOTE
 
-	var out []byte
-	if strings.ToLower(runtime.GOOS) == "windows" {
-		// Uninstall mininghq-miner as a service
-		// We do this using a separate executable so that only the service uninstall
-		// requires Administrator/sudo rights and not the entire installer
-		out, err = exec.Command(
-			"cmd.exe", "/C",
-			"sc.exe", "delete",
-			installer.serviceName,
-		).CombinedOutput()
-	} else {
-		// Uninstall mininghq-miner as a service
-		// We do this using a separate executable so that only the service uninstall
-		// requires Administrator/sudo rights and not the entire installer
-		out, err = exec.Command(
-			"sudo",
-			filepath.Join(installedPath, serviceInstallerFilename),
-			"-op", "uninstall",
-			"-serviceName", installer.serviceName,
-			"-serviceDisplayName", installer.serviceDisplayName,
-			"-serviceDescription", installer.serviceDescription,
-			"-installedPath", installedPath,
-			"-serviceFilename", serviceFilename,
-		).CombinedOutput()
+	// We now use autorun
+	app := &autostart.App{
+		Name:        installer.serviceName,
+		DisplayName: installer.serviceDisplayName,
+		Exec:        []string{filepath.Join(installedPath, installer.serviceName)},
+	}
+	if app.IsEnabled() == true {
+		err = app.Disable()
 	}
 
 	if err != nil {
@@ -247,7 +258,7 @@ https://www.mininghq.io/help
 We were unable to uninstall the miner service (it might already be uninstalled).
 `)
 		fmt.Printf(color.HiRedString(
-			"Include the following error in your report '%s': %s"), err.Error(), out)
+			"Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
@@ -310,6 +321,9 @@ The MiningHQ Team
 
 	fmt.Println()
 	fmt.Println()
+
+	fmt.Println("Press Enter to exit")
+	os.Stdin.Read([]byte{0})
 
 	return nil
 }

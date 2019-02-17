@@ -12,13 +12,13 @@ printf "${YELLOW}Building server installer${NC}\n"
 cd cli
 make clean; make build_linux
 cd ..
-printf "${YELLOW}Building service installer${NC}\n"
-cd install-service
-if [ -e "src/manifest.syso" ]; then
-    rm src/manifest.syso
-fi
-make clean; make build_linux
-cd ..
+# printf "${YELLOW}Building service installer${NC}\n"
+# cd install-service
+# if [ -e "src/manifest.syso" ]; then
+#     rm src/manifest.syso
+# fi
+# make clean; make build_linux
+# cd ..
 printf "${YELLOW}Building miner service${NC}\n"
 cd miner-service
 make clean; make build_linux
@@ -43,8 +43,8 @@ mkdir packages/linux
 mkdir packages/linux/tools
 cp cli/bin/mininghq-server-installer packages/linux/tools
 printf "${YELLOW}Added server installer${NC}\n"
-cp install-service/bin/install-service packages/linux/tools
-printf "${YELLOW}Added service installer${NC}\n"
+# cp install-service/bin/install-service packages/linux/tools
+# printf "${YELLOW}Added service installer${NC}\n"
 cp miner-service/bin/miner-service packages/linux/tools
 printf "${YELLOW}Added miner service${NC}\n"
 cp uninstaller/bin/uninstall-mininghq packages/linux/tools

@@ -27,10 +27,10 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
 
+	"github.com/ProtonMail/go-autostart"
 	"github.com/donovansolms/mininghq-spec/spec/caps"
 	"github.com/fatih/color"
 	"github.com/mininghq/miner-controller/src/mhq"
@@ -383,9 +383,9 @@ We were unable to create the new rig files for your installation.
 	fmt.Print("Installing MiningHQ Miner\n")
 
 	installFiles := map[string]string{
-		"miner-service":     "miner-service",
-		"service-installer": "install-service",
-		"uninstaller":       "uninstall-mininghq",
+		"miner-service": "miner-service",
+		//"service-installer": "install-service",
+		"uninstaller": "uninstall-mininghq",
 	}
 
 	for _, src := range installFiles {
@@ -404,42 +404,53 @@ permissions to the directory '%s'
 		}
 	}
 
-	currentUser, err := user.Current()
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Printf(`
-We were unable to determine the current user. This prevents MiningHQ from
-installing on your rig. Please contact support. '%s'
-	`, err.Error())
-		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
-	}
-
+	// NOTE We are no longer installing as a service. On Windows too many issues
+	// are casued by the multi-fork/update process. No we install an autostart
+	// file that starts the services on boot. It has the nice side effect
+	// of not needing sudo rights
+	//
 	// Install mininghq-miner as a service
 	// We do this using a separate executable so that only the service install
 	// requires Administrator/sudo rights and not the entire installer
-	out, err := exec.Command(
-		"sudo",
-		filepath.Join(installDir, installFiles["service-installer"]),
-		"-op", "install",
-		"-serviceName", installer.serviceName,
-		"-serviceDisplayName", installer.serviceDisplayName,
-		"-serviceDescription", installer.serviceDescription,
-		"-installedPath", installDir,
-		"-serviceFilename", installFiles["miner-service"],
-		"-username", currentUser.Username,
-	).CombinedOutput()
-	if err != nil {
-		color.HiRed("FAIL")
-		fmt.Println("We were unable to install the miner service.")
-		fmt.Printf(color.HiRedString("Include the following error in your report '%s', %s"), err.Error(), out)
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-		os.Exit(1)
+	// out, err := exec.Command(
+	// 	"sudo",
+	// 	filepath.Join(installDir, installFiles["service-installer"]),
+	// 	"-op", "install",
+	// 	"-serviceName", installer.serviceName,
+	// 	"-serviceDisplayName", installer.serviceDisplayName,
+	// 	"-serviceDescription", installer.serviceDescription,
+	// 	"-installedPath", installDir,
+	// 	"-serviceFilename", installFiles["miner-service"],
+	// 	"-username", currentUser.Username,
+	// ).CombinedOutput()
+	// if err != nil {
+	// 	color.HiRed("FAIL")
+	// 	fmt.Println("We were unable to install the miner service.")
+	// 	fmt.Printf(color.HiRedString("Include the following error in your report '%s', %s"), err.Error(), out)
+	// 	fmt.Println()
+	// 	fmt.Println()
+	// 	color.Unset()
+	// 	os.Exit(1)
+	// }
+	// END NOTE
+
+	// Install mininhq-miner as an autostart
+	app := &autostart.App{
+		Name:        installer.serviceName,
+		DisplayName: installer.serviceDisplayName,
+		Exec:        []string{filepath.Join(installDir, installFiles["miner-service"])},
+	}
+	if app.IsEnabled() == false {
+		err = app.Enable()
+		if err != nil {
+			color.HiRed("FAIL")
+			fmt.Println("We were unable to set the miner service to autostart.")
+			fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+			fmt.Println()
+			fmt.Println()
+			color.Unset()
+			os.Exit(1)
+		}
 	}
 
 	installedCheckfilePath := filepath.Join(installer.homeDir, ".mhqpath")
@@ -501,23 +512,32 @@ Please ensure you have the correct permissions to write to your home directory.
 	// Service installed
 	color.HiGreen("OK")
 
+	// NOTE We no longer run MiningHQ as a service, just a background process
 	// Start the mininghq-miner service
 	// We do this using a separate executable so that only the service install
 	// requires Administrator/sudo rights and not the entire installer
-	out, err = exec.Command(
-		"sudo",
-		filepath.Join(installDir, installFiles["service-installer"]),
-		"-op", "start",
-		"-serviceName", installer.serviceName,
-		"-serviceDisplayName", installer.serviceDisplayName,
-		"-serviceDescription", installer.serviceDescription,
-		"-installedPath", installDir,
-		"-serviceFilename", installFiles["miner-service"],
-	).CombinedOutput()
+	// 	out, err = exec.Command(
+	// 		"sudo",
+	// 		filepath.Join(installDir, installFiles["service-installer"]),
+	// 		"-op", "start",
+	// 		"-serviceName", installer.serviceName,
+	// 		"-serviceDisplayName", installer.serviceDisplayName,
+	// 		"-serviceDescription", installer.serviceDescription,
+	// 		"-installedPath", installDir,
+	// 		"-serviceFilename", installFiles["miner-service"],
+	// 	).CombinedOutput()
+	// 	if err != nil {
+	// 		fmt.Printf(`
+	// Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually. Reason: %s, %s
+	// 		`, err.Error(), out)
+	// 	}
+	// END NOTE
+	cmd := exec.Command(filepath.Join(installDir, installFiles["miner-service"]))
+	err = cmd.Start()
 	if err != nil {
 		fmt.Printf(`
-Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually. Reason: %s, %s
-		`, err.Error(), out)
+Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually. Reason: %s
+		 `, err.Error())
 	}
 
 	fmt.Printf(`

@@ -32,6 +32,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/ProtonMail/go-autostart"
 	astilectron "github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
 	"github.com/donovansolms/mininghq-spec/spec/caps"
@@ -433,15 +434,15 @@ Include the following error in your report '%s'
 
 		// Copy installation files
 		installFiles := map[string]string{
-			"miner-service":     "miner-service",
-			"service-installer": "install-service",
-			"uninstaller":       "uninstall-mininghq",
+			"miner-service": "miner-service",
+			//"service-installer": "install-service",
+			"uninstaller": "uninstall-mininghq",
 		}
 		if strings.ToLower(runtime.GOOS) == Windows {
 			installFiles = map[string]string{
-				"miner-service":     "miner-service.exe",
-				"service-installer": "install-service.exe",
-				"uninstaller":       "uninstall-mininghq.exe",
+				"miner-service": "miner-service.exe",
+				//"service-installer": "install-service.exe",
+				"uninstaller": "uninstall-mininghq.exe",
 			}
 		}
 
@@ -463,67 +464,61 @@ Include the following error in your report '%s'
 			}
 		}
 
-		currentUser, err := user.Current()
-		if err != nil {
-			return map[string]string{
-				"status": "error",
-				"message": fmt.Sprintf(`
-<p>
-We were unable to determine the current user. This prevents MiningHQ from
-installing on your rig. Please contact support.
-</p>
-<p>
-Include the following error in your report '%s'
-</p>
-							`, err.Error()),
-			}, nil
-		}
-
+		// NOTE We no longer run as a service, but rather and autostart
 		// Install mininghq-miner as a service
 		// We do this using a separate executable so that only the service install
 		// requires Administrator/sudo rights and not the entire installer
 		// For Linux we use the PolicyKit exec function,
 		// For Windows we embed a manifest file to request admin right
-		var out []byte
-		if strings.ToLower(runtime.GOOS) == "windows" {
+		// var out []byte
+		// if strings.ToLower(runtime.GOOS) == "windows" {
+		//
+		// 	out, err = exec.Command(
+		// 		"cmd.exe", "/C",
+		// 		filepath.Join(gui.installPath, installFiles["service-installer"]),
+		// 		"-op", "install",
+		// 		"-serviceName", gui.serviceName,
+		// 		"-serviceDisplayName", gui.serviceDisplayName,
+		// 		"-serviceDescription", gui.serviceDescription,
+		// 		"-installedPath", gui.installPath,
+		// 		"-serviceFilename", installFiles["miner-service"],
+		// 		"-username", currentUser.Username,
+		// 	).CombinedOutput()
+		// } else {
+		// 	out, err = exec.Command(
+		// 		"pkexec",
+		// 		filepath.Join(gui.installPath, installFiles["service-installer"]),
+		// 		"-op", "install",
+		// 		"-serviceName", gui.serviceName,
+		// 		"-serviceDisplayName", gui.serviceDisplayName,
+		// 		"-serviceDescription", gui.serviceDescription,
+		// 		"-installedPath", gui.installPath,
+		// 		"-serviceFilename", installFiles["miner-service"],
+		// 		"-username", currentUser.Username,
+		// 	).CombinedOutput()
+		// }
+		// END NOTE
 
-			out, err = exec.Command(
-				"cmd.exe", "/C",
-				filepath.Join(gui.installPath, installFiles["service-installer"]),
-				"-op", "install",
-				"-serviceName", gui.serviceName,
-				"-serviceDisplayName", gui.serviceDisplayName,
-				"-serviceDescription", gui.serviceDescription,
-				"-installedPath", gui.installPath,
-				"-serviceFilename", installFiles["miner-service"],
-				"-username", currentUser.Username,
-			).CombinedOutput()
-		} else {
-			out, err = exec.Command(
-				"pkexec",
-				filepath.Join(gui.installPath, installFiles["service-installer"]),
-				"-op", "install",
-				"-serviceName", gui.serviceName,
-				"-serviceDisplayName", gui.serviceDisplayName,
-				"-serviceDescription", gui.serviceDescription,
-				"-installedPath", gui.installPath,
-				"-serviceFilename", installFiles["miner-service"],
-				"-username", currentUser.Username,
-			).CombinedOutput()
+		app := &autostart.App{
+			Name:        gui.serviceName,
+			DisplayName: gui.serviceDisplayName,
+			Exec:        []string{filepath.Join(gui.installPath, installFiles["miner-service"])},
 		}
-
-		if err != nil {
-			return map[string]string{
-				"status": "error",
-				"message": fmt.Sprintf(`
-<p>
-We were unable to install the miner service.
-</p>
-<p>
-Include the following error in your report '%s', %s
-</p>
-				`, err.Error(), out),
-			}, nil
+		if app.IsEnabled() == false {
+			err = app.Enable()
+			if err != nil {
+				return map[string]string{
+					"status": "error",
+					"message": fmt.Sprintf(`
+						<p>
+						We were unable to install the miner service.
+						</p>
+						<p>
+						Include the following error in your report '%s'
+						</p>
+						`, err.Error()),
+				}, nil
+			}
 		}
 
 		installedCheckfilePath := filepath.Join(gui.homeDir, ".mhqpath")
@@ -616,48 +611,56 @@ Include the following error in your report '%s'
 			"message": "Installing MiningHQ Miner",
 		})
 
+		// NOTE We no longer run as a service but rather as autostart
 		// Start the mininghq-miner service
 		// We do this using a separate executable so that only the service install
 		// requires Administrator/sudo rights and not the entire installer
-		if strings.ToLower(runtime.GOOS) == "windows" {
-			out, err = exec.Command(
-				"cmd.exe", "/C",
-				filepath.Join(gui.installPath, installFiles["service-installer"]),
-				"-op", "start",
-				"-serviceName", gui.serviceName,
-				"-serviceDisplayName", gui.serviceDisplayName,
-				"-serviceDescription", gui.serviceDescription,
-				"-installedPath", gui.installPath,
-				"-serviceFilename", installFiles["miner-service"],
-				"-username", currentUser.Username,
-			).CombinedOutput()
-		} else {
-			out, err = exec.Command(
-				"pkexec",
-				filepath.Join(gui.installPath, installFiles["service-installer"]),
-				"-op", "start",
-				"-serviceName", gui.serviceName,
-				"-serviceDisplayName", gui.serviceDisplayName,
-				"-serviceDescription", gui.serviceDescription,
-				"-installedPath", gui.installPath,
-				"-serviceFilename", installFiles["miner-service"],
-				"-username", currentUser.Username,
-			).CombinedOutput()
+		// if strings.ToLower(runtime.GOOS) == "windows" {
+		// 	out, err = exec.Command(
+		// 		"cmd.exe", "/C",
+		// 		filepath.Join(gui.installPath, installFiles["service-installer"]),
+		// 		"-op", "start",
+		// 		"-serviceName", gui.serviceName,
+		// 		"-serviceDisplayName", gui.serviceDisplayName,
+		// 		"-serviceDescription", gui.serviceDescription,
+		// 		"-installedPath", gui.installPath,
+		// 		"-serviceFilename", installFiles["miner-service"],
+		// 		"-username", currentUser.Username,
+		// 	).CombinedOutput()
+		// } else {
+		// 	out, err = exec.Command(
+		// 		"pkexec",
+		// 		filepath.Join(gui.installPath, installFiles["service-installer"]),
+		// 		"-op", "start",
+		// 		"-serviceName", gui.serviceName,
+		// 		"-serviceDisplayName", gui.serviceDisplayName,
+		// 		"-serviceDescription", gui.serviceDescription,
+		// 		"-installedPath", gui.installPath,
+		// 		"-serviceFilename", installFiles["miner-service"],
+		// 		"-username", currentUser.Username,
+		// 	).CombinedOutput()
+		// }
+		cmd := exec.Command(filepath.Join(gui.installPath, installFiles["miner-service"]))
+		err = cmd.Start()
+		if err != nil {
+			fmt.Printf(`
+	Unable to start the MiningHQ service, please start the 'MiningHQ-Miner' service manually. Reason: %s
+			 `, err.Error())
 		}
 		if err != nil {
 			return map[string]string{
 				"status": "error",
 				"message": fmt.Sprintf(`
 <p>
-We were unable to copy the miner manager to your installation path.
+We were unable to start the miner.
 </p>
 <p>
-Please ensure you have the correct permissions to write to your install directory.
+Please start the MiningHQ Miner from your install directory.
 </p>
 <p>
-Include the following error in your report '%s', %s
+Include the following error in your report '%s'
 </p>
-				`, err.Error(), out),
+				`, err.Error()),
 			}, nil
 		}
 
