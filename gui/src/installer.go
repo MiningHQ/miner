@@ -441,6 +441,7 @@ Include the following error in your report '%s'
 		if strings.ToLower(runtime.GOOS) == Windows {
 			installFiles = map[string]string{
 				"miner-service": "miner-service.exe",
+				"runner":        "run-as-service.bat",
 				//"service-installer": "install-service.exe",
 				"uninstaller": "uninstall-mininghq.exe",
 			}
@@ -503,6 +504,19 @@ Include the following error in your report '%s'
 			Name:        gui.serviceName,
 			DisplayName: gui.serviceDisplayName,
 			Exec:        []string{filepath.Join(gui.installPath, installFiles["miner-service"])},
+		}
+		if strings.ToLower(runtime.GOOS) == "windows" {
+			// To run in the background on Windows we need a helper script
+			app = &autostart.App{
+				Name:        gui.serviceName,
+				DisplayName: gui.serviceDisplayName,
+				// C:\Users\Donovan\MiningHQ\run.bat "C:\Users\Donovan\MiningHQ\miner-service.exe" -arguments "-b" -showWindow 0 -title "MiningHQ"
+				Exec: []string{
+					filepath.Join(gui.installPath, installFiles["runner"]),
+					filepath.Join(gui.installPath, installFiles["miner-service"]),
+					"-showWindow", "0",
+					"-title", "MiningHQ"},
+			}
 		}
 		if app.IsEnabled() == false {
 			err = app.Enable()
@@ -641,6 +655,14 @@ Include the following error in your report '%s'
 		// 	).CombinedOutput()
 		// }
 		cmd := exec.Command(filepath.Join(gui.installPath, installFiles["miner-service"]))
+		if strings.ToLower(runtime.GOOS) == "windows" {
+			cmd = exec.Command(
+				filepath.Join(gui.installPath, installFiles["runner"]),
+				filepath.Join(gui.installPath, installFiles["miner-service"]),
+				"-showWindow", "0",
+				"-title", "MiningHQ",
+			)
+		}
 		err = cmd.Start()
 		if err != nil {
 			fmt.Printf(`

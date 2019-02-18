@@ -36,6 +36,8 @@ mkdir packages/windows
 mkdir packages/windows/tools
 # cp install-service/bin/install-service.exe packages/windows/tools
 # printf "${YELLOW}Added service installer${NC}\n"
+cp miner-service/windows/run-as-service.bat packages/windows/tools
+printf "${YELLOW}Added run-as-service${NC}\n"
 cp miner-service/bin/miner-service.exe packages/windows/tools
 printf "${YELLOW}Added miner service${NC}\n"
 cp uninstaller/bin/uninstall-mininghq.exe packages/windows/tools

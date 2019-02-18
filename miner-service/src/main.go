@@ -22,30 +22,14 @@
 package main
 
 import (
-	"flag"
 	"log"
 
-	"github.com/kardianos/service"
-	"github.com/mininghq/miner/helper"
 	"github.com/mininghq/miner/miner-service/src/miner"
 )
 
-var logger service.Logger
-
-// Service setup
-// This is mainly taken from the sample at github.com/kardianos/service
-//
-// Apart from being a simple service it downloads and runs the MiningHQ
-// Miner Controller. The Controller runs all the mining logic.
+// Rownloads and runs the MiningHQ Miner Controller.
+// The Controller runs all the mining logic.
 func main() {
-	svcFlag := flag.String("service", "", "Control the system service.")
-	flag.Parse()
-
-	serviceConfig := &service.Config{
-		Name:        helper.ServiceName,
-		DisplayName: helper.ServiceDisplayName,
-		Description: helper.ServiceDescription,
-	}
 
 	// Set up the new miner
 	minerService, err := miner.New()
@@ -53,44 +37,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Create a service from the miner instance
-	svc, err := service.New(minerService, serviceConfig)
+	// Run
+	err = minerService.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Set up the error log handling for the service
-	errs := make(chan error, 5)
-	logger, err = svc.Logger(errs)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// We set the miner logger to be the service-created logger for the
-	// OS we are running on
-	// Windows would be event log
-	// Linux would be syslog
-	// MacOS would be system log
-	minerService.SetLogger(logger)
-
-	go func() {
-		for {
-			err = <-errs
-			if err != nil {
-				log.Print(err)
-			}
-		}
-	}()
-
-	if len(*svcFlag) != 0 {
-		err = service.Control(svc, *svcFlag)
-		if err != nil {
-			log.Printf("Valid actions are: %q\n", service.ControlAction)
-			log.Fatal(err)
-		}
-		return
-	}
-	err = svc.Run()
-	if err != nil {
-		logger.Error(err)
-	}
 }
