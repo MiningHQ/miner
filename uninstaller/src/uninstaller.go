@@ -26,13 +26,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/ProtonMail/go-autostart"
 	"github.com/fatih/color"
 	"github.com/mininghq/miner-controller/src/mhq"
 	"github.com/mininghq/miner/helper"
+	ps "github.com/mitchellh/go-ps"
 )
 
 const (
@@ -137,6 +143,56 @@ We detected the installation in '%s'
 	// 		os.Exit(0)
 	// 	}
 
+	// Stop the service
+	fmt.Print("Stopping services\t\t\t")
+	minerServiceName := "miner-service"
+	if strings.ToLower(runtime.GOOS) == "windows" {
+		minerServiceName = "miner-service.exe"
+	}
+
+	stopError := fmt.Sprintf(`
+We were unable to stop the MiningHQ services. Please stop the
+services manually.
+
+If you need help, please contact support to resolve
+the issue. Support can be contacted via our help channels listed at
+https://www.mininghq.io/help
+`)
+
+	processReference, err := installer.findProcessByName(minerServiceName)
+	if err != nil {
+		color.HiYellow("NOTICE")
+		fmt.Printf(`
+We were unable to find running MiningHQ services, they might be stopped already.
+Uninstall will continue...
+`)
+		fmt.Printf(color.HiYellowString(
+			"Include the following message if you contact support '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+	} else {
+		// Different OSs have different killing methods
+		if strings.ToLower(runtime.GOOS) == "windows" {
+			// Windows
+			err = exec.Command("TASKKILL", "/T", "/F", "/PID", strconv.Itoa(processReference.Pid())).Run()
+		} else {
+			// -PID (minus PID) to kill the process and all their children
+			err = syscall.Kill(-processReference.Pid(), syscall.SIGKILL)
+		}
+		if err != nil {
+			color.HiRed("FAIL")
+			fmt.Println(stopError)
+			fmt.Printf(color.HiRedString(
+				"Include the following error in your report '%s'"), err.Error())
+			fmt.Println()
+			fmt.Println()
+			color.Unset()
+		} else {
+			color.HiGreen("OK")
+		}
+	}
+
 	// Remove the service
 	fmt.Print("Deregister rig\t\t\t\t")
 	miningKeyPath := filepath.Join(installedPath, "miner-controller", "mining_key")
@@ -205,7 +261,7 @@ https://www.mininghq.io/help
 	}
 
 	// Remove the service
-	fmt.Print("Removing the MiningHQ Miner service\n")
+	fmt.Print("Removing the MiningHQ Miner service\t")
 
 	// NOTE We no longer run as a service
 	// serviceFilename := "mininghq-miner"
@@ -322,8 +378,26 @@ The MiningHQ Team
 	fmt.Println()
 	fmt.Println()
 
+	fmt.Println("Uninstaller will exit in 10 seconds...")
+	time.Sleep(time.Second * 10)
+
 	fmt.Println("Press Enter to exit")
 	os.Stdin.Read([]byte{0})
 
 	return nil
+}
+
+// findProcessByName finds and returns the process information by name
+func (installer *Installer) findProcessByName(name string) (ps.Process, error) {
+	processes, err := ps.Processes()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, process := range processes {
+		if process.Executable() == name {
+			return process, nil
+		}
+	}
+	return nil, fmt.Errorf("Unable to find process with name '%s'", name)
 }
