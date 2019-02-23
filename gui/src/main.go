@@ -22,6 +22,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -46,6 +47,9 @@ var AppName string
 // main is the main runnable of the application
 func main() {
 
+	debug := flag.Bool("d", false, "Enable debug mode")
+	flag.Parse()
+
 	homeDir, err := homedir.Dir()
 	if err != nil {
 		fmt.Printf("Unable to get user home directory: %s\n", err)
@@ -67,7 +71,7 @@ func main() {
 			AppName,
 			Asset,
 			RestoreAssets,
-			false,
+			*debug,
 		)
 		if err != nil {
 			// Setting the output to stdout so the user can see the error
@@ -93,7 +97,7 @@ func main() {
 		homeDir,
 		runtime.GOOS,
 		apiEndpoint,
-		false, // read from flag
+		*debug,
 	)
 	if err != nil {
 		// Setting the output to stdout so the user can see the error

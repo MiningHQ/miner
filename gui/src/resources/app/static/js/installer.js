@@ -133,6 +133,21 @@ let installer = {
     var totalSteps = 5;
     var currentStep = 1;
 
+    $(document).on('click', '.copy-clipboard', function() {
+      var element = $(this);
+      var temp = document.createElement('textarea');
+      temp.value = $('#exclude_path').html();
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+
+      element.html('<i class="fa fa-fw fa-check"></i> copied');
+      window.setTimeout(function(){
+        element.html('<i class="fa fa-fw fa-copy"></i> copy');
+      }, 2000);
+    });
+
     $('.wizard-continue').bind('click', function(){
       var buttonRole = $(this).data('role');
       var buttonStep = $(this).data('step');
@@ -184,7 +199,7 @@ let installer = {
           currentStep++;
         }
       }
-      else if (buttonRole == 'previous')
+      else if (buttonRole == 'back')
       {
         if (previousStep > 0)
         {
