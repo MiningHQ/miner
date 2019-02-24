@@ -8,7 +8,7 @@
 APP_NAME := 'uninstall-mininghq'
 
 build_linux: ## Build the binary for linux
-	go build -o ./bin/${APP_NAME} ./src/*.go
+	GOOS=linux GOARCH=amd64 go build -o ./bin/${APP_NAME} ./src/*.go
 
 build_windows: ## Build the binary for Windows
 	CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=/usr/bin/x86_64-w64-mingw32-gcc go build -o ./bin/${APP_NAME}.exe ./src/*.go

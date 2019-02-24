@@ -26,12 +26,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/ProtonMail/go-autostart"
@@ -172,14 +169,7 @@ Uninstall will continue...
 		fmt.Println()
 		color.Unset()
 	} else {
-		// Different OSs have different killing methods
-		if strings.ToLower(runtime.GOOS) == "windows" {
-			// Windows
-			err = exec.Command("TASKKILL", "/T", "/F", "/PID", strconv.Itoa(processReference.Pid())).Run()
-		} else {
-			// -PID (minus PID) to kill the process and all their children
-			err = syscall.Kill(-processReference.Pid(), syscall.SIGKILL)
-		}
+		err = helper.KillProcess(processReference.Pid())
 		if err != nil {
 			color.HiRed("FAIL")
 			fmt.Println(stopError)
