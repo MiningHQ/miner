@@ -142,9 +142,12 @@ We detected the installation in '%s'
 
 	// Stop the service
 	fmt.Print("Stopping services\t\t\t")
-	minerServiceName := "miner-service"
+	var processesToKill []string
 	if strings.ToLower(runtime.GOOS) == "windows" {
-		minerServiceName = "miner-service.exe"
+		processesToKill = append(processesToKill, "miner-service.exe")
+	} else {
+		processesToKill = append(processesToKill, "miner-cont")
+		processesToKill = append(processesToKill, "miner-serv")
 	}
 
 	stopError := fmt.Sprintf(`
@@ -156,30 +159,32 @@ the issue. Support can be contacted via our help channels listed at
 https://www.mininghq.io/help
 `)
 
-	processReference, err := installer.findProcessByName(minerServiceName)
-	if err != nil {
-		color.HiYellow("NOTICE")
-		fmt.Printf(`
+	for _, processName := range processesToKill {
+		processReference, err := installer.findProcessByName(processName)
+		if err != nil {
+			color.HiYellow("NOTICE")
+			fmt.Printf(`
 We were unable to find running MiningHQ services, they might be stopped already.
 Uninstall will continue...
 `)
-		fmt.Printf(color.HiYellowString(
-			"Include the following message if you contact support '%s'"), err.Error())
-		fmt.Println()
-		fmt.Println()
-		color.Unset()
-	} else {
-		err = helper.KillProcess(processReference.Pid())
-		if err != nil {
-			color.HiRed("FAIL")
-			fmt.Println(stopError)
-			fmt.Printf(color.HiRedString(
-				"Include the following error in your report '%s'"), err.Error())
+			fmt.Printf(color.HiYellowString(
+				"Include the following message if you contact support '%s'"), err.Error())
 			fmt.Println()
 			fmt.Println()
 			color.Unset()
 		} else {
-			color.HiGreen("OK")
+			err = helper.KillProcess(processReference.Pid())
+			if err != nil {
+				color.HiRed("FAIL")
+				fmt.Println(stopError)
+				fmt.Printf(color.HiRedString(
+					"Include the following error in your report '%s'"), err.Error())
+				fmt.Println()
+				fmt.Println()
+				color.Unset()
+			} else {
+				color.HiGreen("OK")
+			}
 		}
 	}
 
@@ -294,8 +299,8 @@ https://www.mininghq.io/help
 		DisplayName: installer.serviceDisplayName,
 		Exec:        []string{filepath.Join(installedPath, installer.serviceName)},
 	}
-	if app.IsEnabled() == true {
-		err = app.Disable()
+	if app.IsEnabled(false) == true {
+		err = app.Disable(false)
 	}
 
 	if err != nil {
@@ -316,35 +321,67 @@ We were unable to uninstall the miner service (it might already be uninstalled).
 		color.HiGreen("OK")
 	}
 
-	// Remove files
-	fmt.Print("Remove the files\t\t\t")
-	err = os.RemoveAll(installedPath)
+	fmt.Print("Remove startup item\t\t\t")
+	if strings.ToLower(runtime.GOOS) == "windows" {
+
+		app := &autostart.App{
+			Name:        "MiningHQ Miner Manager",
+			DisplayName: "MiningHQ Miner Manager",
+			Exec:        []string{filepath.Join(installedPath, "MiningHQ Miner Manager.exe")},
+		}
+		if app.IsEnabled(true) == true {
+			err = app.Disable(true)
+		}
+
+	} else {
+		err = os.Remove(filepath.Join(installer.homeDir, ".local", "share", "applications", "MiningHQ.desktop"))
+	}
 	if err != nil {
 		color.HiRed("FAIL")
 		fmt.Printf(`
-We were unable to remove the MiningHQ files from '%s'.
-`, installedPath)
+We were unable to remove the MiningHQ Miner Manager from your start menu.
+`)
 		fmt.Printf(color.HiRedString(
 			"Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
-		os.Exit(0)
+
+		// If we can't remove the shortcup, continue with the rest of the removal
+		// anyways
+	} else {
+		// Service uninstalled
+		color.HiGreen("OK")
 	}
-	err = os.Remove(installedPathFilepath)
+
+	// Remove files
+	fmt.Print("Remove the files\t\t\t")
+	err = os.RemoveAll(installedPath)
 	if err != nil {
-		color.HiRed("FAIL")
+		color.HiYellow("NOTICE")
 		fmt.Printf(`
-We were unable to remove the MiningHQ file from '%s'.
-`, installedPathFilepath)
-		fmt.Printf(color.HiRedString("Include the following error in your report '%s'"), err.Error())
+We were unable to remove the MiningHQ files from '%s'. Please remove it yourself.
+`, installedPath)
+		fmt.Printf(color.HiYellowString(
+			"Include the following error in your report '%s'"), err.Error())
 		fmt.Println()
 		fmt.Println()
 		color.Unset()
-		os.Exit(0)
 	}
-	// Files removed
-	color.HiGreen("OK")
+	err = os.Remove(installedPathFilepath)
+	if err != nil {
+		color.HiYellow("NOTICE")
+		fmt.Printf(`
+We were unable to remove the MiningHQ file from '%s'. Please remove it yourself.
+`, installedPathFilepath)
+		fmt.Printf(color.HiYellowString("Include the following error in your report '%s'"), err.Error())
+		fmt.Println()
+		fmt.Println()
+		color.Unset()
+	} else {
+		// Files removed
+		color.HiGreen("OK")
+	}
 
 	fmt.Printf(`
 
@@ -385,7 +422,7 @@ func (installer *Installer) findProcessByName(name string) (ps.Process, error) {
 	}
 
 	for _, process := range processes {
-		if process.Executable() == name {
+		if strings.Contains(process.Executable(), name) {
 			return process, nil
 		}
 	}

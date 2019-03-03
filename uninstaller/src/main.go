@@ -113,9 +113,8 @@ Please contact our support via our help channels listed at https://www.mininghq.
 		// if the mhqpath file doesn't exist, nothing is installed
 		return false
 	}
-
 	// Check if installedPath exists
-	info, err := os.Stat(string(installedPath))
+	info, err := os.Stat(strings.TrimSpace(string(installedPath)))
 	if err != nil {
 		return false
 	}

@@ -518,8 +518,8 @@ Include the following error in your report '%s'
 					"-title", "MiningHQ"},
 			}
 		}
-		if app.IsEnabled() == false {
-			err = app.Enable()
+		if app.IsEnabled(false) == false {
+			err = app.Enable(false)
 			if err != nil {
 				return map[string]string{
 					"status": "error",
@@ -684,6 +684,47 @@ Include the following error in your report '%s'
 </p>
 				`, err.Error()),
 			}, nil
+		}
+
+		// Create the start menu/launcher items
+		if strings.ToLower(runtime.GOOS) == "windows" {
+
+			// To run in the background on Windows we need a helper script
+			app = &autostart.App{
+				Name:        "MiningHQ Miner Manager",
+				DisplayName: "MiningHQ Miner Manager",
+				Exec:        []string{filepath.Join(gui.installPath, "MiningHQ Miner Manager.exe")},
+			}
+
+			if app.IsEnabled(true) == false {
+				err = app.Enable(true)
+				if err != nil {
+					// We don't send the error back here since this start menu isn't
+					// important enough to cause an installation fail
+				}
+			}
+
+		} else {
+			// Install the launcher item
+			_, err = os.Stat(filepath.Join(gui.homeDir, ".local", "share", "applications"))
+			if err == nil {
+				// If this applications path exists, we're on a compatible distribution
+				contents := fmt.Sprintf(`
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Exec='%s'
+Name=MiningHQ Miner Manager
+Comment=MiningHQ Miner Manager
+Icon=%s/resources/icon.png`,
+					filepath.Join(gui.installPath, "MiningHQ Miner Manager"),
+					gui.installPath)
+
+				err = ioutil.WriteFile(filepath.Join(gui.homeDir, ".local", "share", "applications", "MiningHQ.desktop"), []byte(contents), 0600)
+				if err != nil {
+					// We don't send the error back here since this launcher isn't important enough to cause an installation fail
+				}
+			}
 		}
 
 		return map[string]string{

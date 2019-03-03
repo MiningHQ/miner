@@ -22,10 +22,11 @@
 // Package helper implements various helper functions
 package helper
 
-import "syscall"
+import (
+	"syscall"
+)
 
 // KillProcess kills a process and all its children
 func KillProcess(pid int) error {
-	// -PID (minus PID) to kill the process and all their children
-	return syscall.Kill(-pid, syscall.SIGKILL)
+	return syscall.Kill(pid, syscall.SIGKILL)
 }

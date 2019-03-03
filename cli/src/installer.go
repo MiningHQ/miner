@@ -440,8 +440,8 @@ permissions to the directory '%s'
 		DisplayName: installer.serviceDisplayName,
 		Exec:        []string{filepath.Join(installDir, installFiles["miner-service"])},
 	}
-	if app.IsEnabled() == false {
-		err = app.Enable()
+	if app.IsEnabled(false) == false {
+		err = app.Enable(false)
 		if err != nil {
 			color.HiRed("FAIL")
 			fmt.Println("We were unable to set the miner service to autostart.")
