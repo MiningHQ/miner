@@ -81,25 +81,13 @@ let manager = {
        remote.getCurrentWindow().close();
     });
 
-    // $('.header-button.help').bind('click', function(){
-    //   $('#help').toggleClass('dn');
-    // });
-    // $('.header-button.minimize').bind('click', function(){
-    //   remote.getCurrentWindow().minimize();
-    // });
-    // $('.header-button.exit').bind('click', function(){
-    //   remote.getCurrentWindow().close();
-    // });
-
-    // $('.close-help').bind('click', function(){
-    //   $('#help').toggleClass('dn');
-    // });
+    $('.minimize').bind('click', function(){
+      remote.getCurrentWindow().minimize();
+    });
 
     $('#refresh').bind('click', function(){
       astilectron.sendMessage({name: "refresh", payload: ""}, function(message){
-
       });
-
     });
   },
 };
