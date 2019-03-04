@@ -85,6 +85,19 @@ let manager = {
       remote.getCurrentWindow().minimize();
     });
 
+    $('#pause_resume').bind('click', function(){
+      // TODO Continue here
+      console.log('pause mining');
+
+      // TODO: Send request, the Go side should update the state using 'update'
+
+      // $('#state_info').addClass('text-success');
+      // $('#state_info').removeClass('text-danger');
+      // $('#state_info').html('Mining');
+      // $('#state_info').show();
+      //
+    });
+
     $('#refresh').bind('click', function(){
       astilectron.sendMessage({name: "refresh", payload: ""}, function(message){
       });

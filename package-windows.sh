@@ -47,7 +47,8 @@ printf "${YELLOW}Added GUI${NC}\n"
 printf "${GREEN}All parts added${NC}\n"
 printf "\n${LIGHTGREEN}Create package${NC}\n\n"
 # cd packages/windows
-# zip MiningHQ-Miner.zip *
+# 7z a -m0=Copy WindowsBase.7z MiningHQ\ Miner\ Installer.exe tools\
+# cat 7zS.sfx config.txt WindowsBase.7z
 # find . -type f ! -name "*.zip" -exec rm -rf {} \;
 # printf "\n${LIGHTGREEN}Removed temporary files${NC}\n\n"
 # cd ..
