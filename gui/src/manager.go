@@ -318,6 +318,58 @@ Unable to query miner controller, please ensure the MiningHQ Miner service is ru
 		// TODO: Do this loop better
 		go gui.updateLoop()
 
+	case "pause":
+		_, err := gui.managerClient.SetState(context.Background(), &rpcproto.StateRequest{
+			State: rpcproto.MinerState_PauseMining,
+		})
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+Unable to pause mining, please ensure the MiningHQ Miner service is running.
+</p>
+<p>
+%s
+</p>`, err),
+			}, nil
+		}
+
+		return map[string]string{
+			"status": "success",
+			"message": fmt.Sprintf(`
+<p>
+Mining has been paused
+</p>
+`),
+		}, nil
+
+	case "resume":
+		_, err := gui.managerClient.SetState(context.Background(), &rpcproto.StateRequest{
+			State: rpcproto.MinerState_ResumeMining,
+		})
+		if err != nil {
+			return map[string]string{
+				"status": "error",
+				"message": fmt.Sprintf(`
+<p>
+Unable to resume mining, please ensure the MiningHQ Miner service is running.
+</p>
+<p>
+%s
+</p>`, err),
+			}, nil
+		}
+
+		return map[string]string{
+			"status": "success",
+			"message": fmt.Sprintf(`
+<p>
+Mining has been resumed
+</p>
+`),
+		}, nil
+
 	case "Cancel":
 
 	}

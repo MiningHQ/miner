@@ -55,15 +55,30 @@ let manager = {
           {
             $('#state_info').addClass('text-success');
             $('#state_info').removeClass('text-danger');
+            $('#state_info').removeClass('text-warning');
             $('#state_info').html('Mining');
             $('#state_info').show();
+
+            $('#pause').removeClass('d-none');
+            $('#resume').addClass('d-none');
           }
           else if (parsed.State == 3) // StopMining = 3;
           {
             $('#state_info').removeClass('text-success');
+            $('#state_info').removeClass('text-warning');
             $('#state_info').addClass('text-danger');
             $('#state_info').html('Not mining');
             $('#state_info').show();
+          }
+          else if (parsed.State == 4) // PauseMining = 4;
+          {
+            $('#state_info').removeClass('text-success');
+            $('#state_info').removeClass('text-danger');
+            $('#state_info').addClass('text-warning');
+            $('#state_info').html('Paused');
+            $('#state_info').show();
+            $('#pause').addClass('d-none');
+            $('#resume').removeClass('d-none');
           }
 
           break;
@@ -85,17 +100,56 @@ let manager = {
       remote.getCurrentWindow().minimize();
     });
 
-    $('#pause_resume').bind('click', function(){
-      // TODO Continue here
-      console.log('pause mining');
+    $('#pause').bind('click', function(){
 
-      // TODO: Send request, the Go side should update the state using 'update'
+      astilectron.sendMessage({
+        name: "pause",
+        payload: ""
+      }, function(message) {
+        if (message.payload.status == 'error')
+        {
+          $('#error_list').html(message.payload.message);
+          $('#error_modal').modal();
+        }
+        else
+        {
+          $('#state_info').removeClass('text-success');
+          $('#state_info').removeClass('text-danger');
+          $('#state_info').addClass('text-warning');
+          $('#state_info').html('Paused');
+          $('#state_info').show();
 
-      // $('#state_info').addClass('text-success');
-      // $('#state_info').removeClass('text-danger');
-      // $('#state_info').html('Mining');
-      // $('#state_info').show();
-      //
+          // Hide pause, show resume
+          $('#pause').addClass('d-none');
+          $('#resume').removeClass('d-none');
+        }
+      });
+    });
+
+    $('#resume').bind('click', function(){
+
+      astilectron.sendMessage({
+        name: "resume",
+        payload: ""
+      }, function(message) {
+        if (message.payload.status == 'error')
+        {
+          $('#error_list').html(message.payload.message);
+          $('#error_modal').modal();
+        }
+        else
+        {
+          $('#state_info').addClass('text-success');
+          $('#state_info').removeClass('text-danger');
+          $('#state_info').removeClass('text-warning');
+          $('#state_info').html('Mining');
+          $('#state_info').show();
+
+          // Hide pause, show resume
+          $('#pause').removeClass('d-none');
+          $('#resume').addClass('d-none');
+        }
+      });
     });
 
     $('#refresh').bind('click', function(){
